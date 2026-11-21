@@ -291,7 +291,7 @@ function defaultKw(){return {"Habi Cars":["habicars","habi cars","coche","coches
 function load(){
   try{S=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){S=null}
   if(!S||!S.v) S=seed();
-  if(!S.kw)S.kw=defaultKw(); if(!S.wins)S.wins={};
+  if(!S.kw)S.kw=defaultKw(); if(!S.wins)S.wins={}; if(!S.changes)S.changes=[];
   if(!S.pereMig){const o="Buen Camino",n="Juego del peregrino";const i=S.areas.indexOf(o);if(i>=0&&!S.areas.includes(n))S.areas[i]=n;S.tasks.forEach(k=>{if(k.area===o)k.area=n});const dk=defaultKw();S.kw[n]=Array.from(new Set([...(S.kw[o]||[]),...dk[n]]));delete S.kw[o];S.pereMig=1}
   if(!S.projMig){DEFAULT_AREAS.forEach(a=>{if(!S.areas.includes(a))S.areas.push(a)});const dk=defaultKw();Object.keys(dk).forEach(a=>{if(!S.kw[a])S.kw[a]=dk[a]});S.projMig=1}
   if(!S.dumpMig){const n=S.routines.find(r=>/noche/i.test(r.name));if(n&&!n.items.some(i=>i.act==="dump"))n.items.unshift({id:uid(),text:"Dictar todo lo que tengo que hacer mañana",mins:3,act:"dump"});S.dumpMig=1} if(!S.settings.home||(S.settings.home==="19:30"&&!S.settings.homeSet))S.settings.home="20:00";
@@ -385,7 +385,8 @@ function taskRow(k,o={}){
 function greet(){const h=new Date().getHours();return h<6?"Buenas noches":h<13?"Buenos días":h<21?"Buenas tardes":"Buenas noches"}
 function header(title){
   let d=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});d=d[0].toUpperCase()+d.slice(1);
-  return `<header class="top"><div><div class="day">${d}</div><h1>${title}</h1></div><button class="iconbtn" data-act="settings" aria-label="Ajustes">${I.gear}</button></header>`;
+  const pend=(S.changes||[]).filter(c=>!c.sent).length;
+  return `<header class="top"><div><div class="day">${d}</div><h1>${title}</h1></div><div style="display:flex;gap:4px;align-items:center"><button class="chipbtn" data-act="tab" data-tab="chg" aria-label="Cambios para la app"${tab==="chg"?' aria-pressed="true"':""}>Cambios${pend?` · ${pend}`:""}</button><button class="iconbtn" data-act="settings" aria-label="Ajustes">${I.gear}</button></div></header>`;
 }
 function exBanner(){return S.tasks.some(k=>k.ex)?`<div class="banner"><span>Las tareas marcadas como <b>ejemplo</b> están para que veas cómo funciona.</span><button class="chipbtn" data-act="delex">Borrar ejemplos</button></div>`:""}
 
@@ -523,6 +524,34 @@ function projMenu(a){
   <button class="btn done" data-act="close">Cerrar</button>`);
 }
 
+/* Cambios para la app: se mandan a Claude como tareas en GitHub */
+const REPO="https://github.com/Habiscan/ritmo";
+function issueUrl(list){
+  const title=list.length===1?"Cambio: "+list[0].text.slice(0,70):`${list.length} cambios para la app`;
+  const body=list.map(c=>`- [${c.kind==="quitar"?"Quitar":c.kind==="arreglar"?"Arreglar":"Meter"}] ${c.text}`).join("\n")+"\n\nEnviado desde Ritmo el "+new Date().toLocaleString("es-ES")+".";
+  return REPO+"/issues/new?labels=cambio&title="+encodeURIComponent(title)+"&body="+encodeURIComponent(body);
+}
+let chgKind="meter";
+function viewChg(){
+  capWhen="chg";
+  const hasMic=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  const pend=S.changes.filter(c=>!c.sent), sent=S.changes.filter(c=>c.sent).slice(-15).reverse();
+  let h=header("Cambios");
+  h+=`<p class="hint">Di qué quieres meter, quitar o arreglar en la app. Cuando lo mandes, Claude lo recibe como tarea y lo aplica.</p>
+  <div class="chips" style="margin-top:12px">${[["meter","Meter algo"],["quitar","Quitar algo"],["arreglar","Algo va mal"]].map(([k,l])=>`<button class="chipbtn" data-act="chgkind" data-k="${k}" aria-pressed="${chgKind===k}">${l}</button>`).join("")}</div>
+  <div class="cap" style="margin-top:10px"><textarea id="chgt" placeholder="Ej: quiero que el botón de Hecho sea más grande" aria-label="Cambio que quieres"></textarea>
+  <div class="side">${hasMic?`<button id="micb" data-act="mic" aria-label="Dictar">${I.mic}</button>`:""}<button class="go" data-act="chgadd" aria-label="Guardar cambio">${I.send}</button></div></div>
+  <div class="parsed" id="parsed"></div><div id="capchips"></div>`;
+  if(pend.length){
+    h+=`<div class="label">Sin mandar <small>${pend.length}</small></div><ul class="list">${pend.map(c=>`<li class="task"><span class="cb" aria-hidden="true" style="width:auto;padding:0 6px"><span class="pill ${c.kind==="quitar"?"":"mark"}">${c.kind}</span></span><span class="tb"><span class="tt">${esc(c.text)}</span></span><button class="ib" data-act="chgdel" data-cid="${c.id}" aria-label="Borrar">${I.x}</button></li>`).join("")}</ul>
+    <a class="btn primary" style="margin-top:12px;text-decoration:none" href="${esc(issueUrl(pend))}" target="_blank" rel="noopener" data-act="chgsend">Mandar ${pend.length===1?"el cambio":`los ${pend.length} cambios`} a Claude</a>
+    <p class="hint" style="font-size:14px">Se abre GitHub con todo ya escrito. Solo tienes que tocar <b>Create</b>. Ojo: el repositorio es público, así que no pongas datos personales.</p>`;
+  } else h+=`<div class="empty" style="margin-top:14px"><h3>Nada pendiente</h3><p>Cuando algo de la app te moleste, dilo aquí en el momento.</p></div>`;
+  if(sent.length)h+=`<div class="label">Mandados</div><ul class="list">${sent.map(c=>`<li class="task done"><span class="cb"><i>${I.check}</i></span><span class="tb"><span class="tt">${esc(c.text)}</span><span class="meta"><span class="pill">${c.kind}</span></span></span></li>`).join("")}</ul>
+  <a class="btn line" style="margin-top:10px;text-decoration:none" href="${REPO}/issues?q=label%3Acambio" target="_blank" rel="noopener">Ver en qué va cada cambio</a>`;
+  return h;
+}
+
 /* Rutinas */
 let editR=null;
 function viewRout(){
@@ -551,7 +580,7 @@ function viewRout(){
 function render(){
   renderTabs();
   const v=$("#view");
-  v.innerHTML=tab==="today"?viewToday():tab==="inbox"?viewInbox():tab==="rout"?viewRout():tab==="proj"?viewProj():viewNow();
+  v.innerHTML=tab==="today"?viewToday():tab==="inbox"?viewInbox():tab==="rout"?viewRout():tab==="proj"?viewProj():tab==="chg"?viewChg():viewNow();
 }
 
 /* ---------- capas: hojas, foco, avisos ---------- */
@@ -584,7 +613,7 @@ function openCapture(idea){
   if(capIdea&&hasMic)setTimeout(mic,150);
 }
 function updParsed(){
-  if(capWhen==="dump")return;
+  if(capWhen==="dump"||capWhen==="chg")return;
   const ta=$("#capt");if(!ta)return;
   const p=parse(ta.value);
   if(capIdea){
@@ -622,16 +651,17 @@ function capSave(){
   renderTabs();
 }
 let rec=null;
+function capEl(){return document.querySelector("#scrim #capt")||document.querySelector("#chgt")}
 function mic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
   if(rec){try{rec.stop()}catch(e){}return}
   try{
     rec=new SR();rec.lang="es-ES";rec.interimResults=true;rec.continuous=capWhen==="dump";
     const b=$("#micb");b&&b.classList.add("rec");
-    const base=$("#capt").value;
-    rec.onresult=e=>{let s="";for(const r of e.results)s+=r[0].transcript;$("#capt").value=(base?base+" ":"")+s;updParsed()};
+    const base=capEl().value;
+    rec.onresult=e=>{let s="";for(const r of e.results)s+=r[0].transcript;capEl().value=(base?base+" ":"")+s;updParsed()};
     rec.onerror=()=>{toast("No he podido usar el micro aquí. Prueba desde la app instalada.")};
-    rec.onend=()=>{rec=null;const b=$("#micb");b&&b.classList.remove("rec");const ta=$("#capt");if(capIdea&&ta&&ta.value.trim()&&ta.value!==base)setTimeout(()=>{if($("#capt"))capSave()},900);if(capWhen==="dump"&&ta&&ta.value.trim()){const b2=document.querySelector('[data-act="dump-split"]');b2&&b2.click()}};
+    rec.onend=()=>{rec=null;const b=$("#micb");b&&b.classList.remove("rec");const ta=capEl();if(capIdea&&ta&&ta.value.trim()&&ta.value!==base)setTimeout(()=>{if(capEl())capSave()},900);if(capWhen==="dump"&&ta&&ta.value.trim()){const b2=document.querySelector('[data-act="dump-split"]');b2&&b2.click()}};
     rec.start();
   }catch(e){rec=null;toast("No he podido usar el micro aquí.")}
 }
@@ -935,7 +965,7 @@ document.addEventListener("click",e=>{
       S.areas[S.areas.indexOf(old)]=nw;S.tasks.forEach(k=>{if(k.area===old)k.area=nw});if(S.kw[old]){S.kw[nw]=S.kw[old];delete S.kw[old]}openProj=nw;save();closeSheet();break}
     case"pkw":S.kw[b.dataset.a]=($("#pkw").value||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);save();toast("Palabras guardadas");break;
     case"pdel":if(b.dataset.sure){const a=b.dataset.a;S.areas=S.areas.filter(x=>x!==a);S.tasks.forEach(k=>{if(k.area===a)k.area=""});openProj=null;save();closeSheet()}else{b.dataset.sure="1";b.textContent="Toca otra vez para borrar"}break;
-    case"tab":openProj=b.dataset.tab==="proj"&&tab==="proj"?null:openProj;tab=b.dataset.tab;try{sessionStorage.setItem("ritmo.tab",tab)}catch(e){};closePlay();render();scrollTo(0,0);break;
+    case"tab":if(capWhen==="chg")capWhen=null;openProj=b.dataset.tab==="proj"&&tab==="proj"?null:openProj;tab=b.dataset.tab;try{sessionStorage.setItem("ritmo.tab",tab)}catch(e){};closePlay();render();scrollTo(0,0);break;
     case"capture":openCapture();break;
     case"idea":openCapture(true);break;
     case"caparea":{const p=parse($("#capt").value);const cur=capArea!==null?capArea:p.area;capArea=cur===b.dataset.a?"":b.dataset.a;updParsed();break}
@@ -962,6 +992,10 @@ document.addEventListener("click",e=>{
       S.tasks.push({id:uid(),text:m,step:"",mins:0,energy:"",status:"today",date:today(),time:"",important:k.important&&importants().length<=3,area:k.area,done:false,doneAt:0,order:Date.now()-1,created:Date.now()});
       setWhen(k,"tomorrow");k.skips=0;save();closeSheet();render();toast("Apuntado. La otra queda para mañana.");break}
     case"dump":closePlay();openDump();break;
+    case"chgkind":chgKind=b.dataset.k;{const v=$("#chgt").value;render();$("#chgt").value=v;$("#chgt").focus()}break;
+    case"chgadd":{const t=($("#chgt").value||"").trim();if(!t){$("#chgt").focus();break}if(rec){try{rec.stop()}catch(e){}}S.changes.push({id:uid(),text:t,kind:chgKind,at:Date.now(),sent:false});save();render();toast("Cambio guardado. Mándalo cuando quieras.");break}
+    case"chgdel":S.changes=S.changes.filter(c=>c.id!==b.dataset.cid);save();render();break;
+    case"chgsend":S.changes.forEach(c=>{if(!c.sent){c.sent=true;c.sentAt=Date.now()}});save();setTimeout(()=>{render();toast("Mandado. Claude lo verá en la próxima revisión.")},300);break;
     case"dump-split":{const t=($("#capt").value||"").trim();if(!t){$("#capt").focus();break}if(rec){try{rec.stop()}catch(e){}}
       const day=dumpDay();const nImp=S.tasks.filter(x=>x.important&&!x.done&&x.date===day).length;
       splitDump(t).forEach(x=>{if(dumpItems.some(d=>d.t===x))return;const p=parse(x);dumpItems.push({t:x,on:true,imp:false,time:p.time,area:p.area})});
@@ -1037,6 +1071,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){if($("#scrim"))closeSheet()}
   if(e.key==="Enter"&&e.target.id&&e.target.id.startsWith("ri-")){const b=e.target.parentElement.querySelector('[data-act="radd"]');b&&b.click()}
   if(e.key==="Enter"&&e.target.id==="newstep"){const b=document.querySelector('[data-act="stepadd"]:not([data-t])');b&&b.click()}
+  if(e.key==="Enter"&&!e.shiftKey&&e.target.id==="chgt"){e.preventDefault();const b=document.querySelector('[data-act="chgadd"]');b&&b.click()}
   if(e.key==="Enter"&&e.target.id==="ptask"){const b=document.querySelector('[data-act="ptadd"]');b&&b.click()}
   if(e.key==="Enter"&&e.target.id==="newproj"){const b=document.querySelector('[data-act="padd"]');b&&b.click()}
   if(e.key==="Enter"&&e.target.id==="newarea"){const b=document.querySelector('[data-act="aadd"]');b&&b.click()}
