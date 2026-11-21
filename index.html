@@ -65,6 +65,19 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 .now h2{font-size:30px;line-height:1.12;font-weight:800;letter-spacing:-.015em}
 .now h2 .hl{background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 2px}
 .step{background:var(--soft);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.step .big{font-size:20px;font-weight:700;line-height:1.3;display:block;margin-top:2px}
+.step .row2{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+.wins{font-size:15px;color:var(--muted);margin:10px 4px 0}
+.why{display:flex;flex-direction:column;gap:8px}
+.why button{text-align:left;padding:14px 16px;border-radius:14px;background:var(--soft);font-weight:700;font-size:17px}
+.why button small{display:block;font-weight:400;color:var(--muted);font-size:14px}
+.dumpl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.dumpl li{display:flex;align-items:center;gap:6px;background:var(--soft);border-radius:12px;padding:4px 4px 4px 10px}
+.dumpl li input[type=text]{flex:1;min-width:0;border:0;background:transparent;font-size:17px;padding:8px 0}
+.dumpl li input[type=text]:focus{outline:none}
+.dumpl li.off{opacity:.45}
+.dumpl .ib{width:40px;height:40px;display:grid;place-items:center;border-radius:10px;color:var(--muted);flex:none}
+.dumpl .ib.on{background:var(--mark);color:var(--mark-ink)}
 .step b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .step .s-edit{color:var(--accent);font-weight:700;font-size:15px;margin-top:2px}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -255,7 +268,7 @@ function seed(){
     routines:[
       {id:uid(),name:"Mañana",time:"09:00",items:[{id:uid(),text:"Beber un vaso de agua",mins:1},{id:uid(),text:"Medicación (si toca)",mins:1},{id:uid(),text:"Desayunar sin pantalla",mins:15},{id:uid(),text:"Elegir mis 3 cosas de hoy",mins:3}]},
       {id:uid(),name:"Cierre de trabajo",time:"19:00",items:[{id:uid(),text:"Apuntar lo que tengo a medias",mins:3},{id:uid(),text:"Vaciar la bandeja",mins:5},{id:uid(),text:"Cerrar pestañas y apps",mins:2}]},
-      {id:uid(),name:"Noche",time:"23:00",items:[{id:uid(),text:"Soltar en la bandeja lo que tenga en la cabeza",mins:3},{id:uid(),text:"Dejar el móvil cargando fuera de la cama",mins:1},{id:uid(),text:"Llaves, cartera y ropa preparadas",mins:5}]}
+      {id:uid(),name:"Noche",time:"23:00",items:[{id:uid(),text:"Dictar todo lo que tengo que hacer mañana",mins:3,act:"dump"},{id:uid(),text:"Dejar el móvil cargando fuera de la cama",mins:1},{id:uid(),text:"Llaves, cartera y ropa preparadas",mins:5}]}
     ],
     areas:["Personal","Habi Scan","PAÍS x PAÍS","Buen Camino","Agencia"],
     kw:defaultKw(), rlog:{}, notified:{}, settings:{sound:true,nag:5,home:"20:00"}, energy:"", timer:null, lastDay:t
@@ -265,7 +278,8 @@ function defaultKw(){return {"Habi Scan":["habi","habiscan","reel","reels","inst
 function load(){
   try{S=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){S=null}
   if(!S||!S.v) S=seed();
-  if(!S.kw)S.kw=defaultKw(); if(!S.settings.home||(S.settings.home==="19:30"&&!S.settings.homeSet))S.settings.home="20:00";
+  if(!S.kw)S.kw=defaultKw(); if(!S.wins)S.wins={};
+  if(!S.dumpMig){const n=S.routines.find(r=>/noche/i.test(r.name));if(n&&!n.items.some(i=>i.act==="dump"))n.items.unshift({id:uid(),text:"Dictar todo lo que tengo que hacer mañana",mins:3,act:"dump"});S.dumpMig=1} if(!S.settings.home||(S.settings.home==="19:30"&&!S.settings.homeSet))S.settings.home="20:00";
   rollover();
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -372,6 +386,8 @@ function nextTask(){
     return a.order-b.order});
   return c[0]||null;
 }
+function curStep(k){const st=(k.steps||[]);const i=st.findIndex(x=>!x.done);if(i>=0)return {text:st[i].t,i,n:st.length};return k.step?{text:k.step,i:-1,n:0}:null}
+const winsToday=()=>(S.wins||{})[today()]||0;
 function viewNow(){
   let h=header(greet());
   const r=routineDue();
@@ -387,9 +403,12 @@ function viewNow(){
   } else if(k){
     h+=`<section class="now" aria-label="Lo siguiente"><div class="kicker">Lo siguiente ${k.important?'<span class="pill mark">Importante</span>':""}${k.time?`<span class="pill">${I.clock}${k.time}</span>`:""}${k.mins?`<span class="pill">${k.mins} min</span>`:""}${areaPill(k.area)}${k.ex?'<span class="pill ex">ejemplo</span>':""}</div>
     <h2><span class="hl">${esc(k.text)}</span></h2>
-    <div class="step"><div><b>Primer paso (2 minutos)</b>${k.step?esc(k.step):`<span class="hint" style="margin:0">¿Cuál es lo más pequeño que puedes hacer?</span>`}<br><button class="s-edit" data-act="edit" data-id="${k.id}">${k.step?"Cambiar":"Escribir primer paso"}</button></div></div>
+    ${(()=>{const cs=curStep(k);return `<div class="step"><div style="flex:1;min-width:0"><b>${cs&&cs.i>=0?`Paso ${cs.i+1} de ${cs.n}`:"Primer paso (2 minutos)"}</b>${cs?`<span class="big">${esc(cs.text)}</span>`:`<span class="hint" style="margin:0">¿Cuál es lo más pequeño que puedes hacer?</span>`}
+      <div class="row2">${cs&&cs.i>=0?`<button class="s-edit" data-act="stepdone" data-id="${k.id}">${I.check} Paso hecho</button>`:""}<button class="s-edit" data-act="stuck-why" data-why="start" data-id="${k.id}">${cs?"Cambiar pasos":"Partir en pasitos"}</button></div></div></div>`})()}
+    ${k.reward?`<p class="hint" style="margin:0">Premio al acabar: <b>${esc(k.reward)}</b></p>`:""}
     <div class="actions"><button class="btn primary" data-act="start" data-id="${k.id}">${I.play}Empezar</button>
-    <button class="btn ghost" data-act="notnow" data-id="${k.id}">Ahora no</button><button class="btn done" data-act="toggle" data-id="${k.id}">${I.check} Hecho</button></div></section>`;
+    <button class="btn ghost" data-act="five" data-id="${k.id}">Solo 5 minutos</button><button class="btn ghost" data-act="stuck" data-id="${k.id}">Me he atascado</button>
+    <button class="btn line" data-act="notnow" data-id="${k.id}">Ahora no</button><button class="btn done" data-act="toggle" data-id="${k.id}">${I.check} Hecho</button></div></section>`;
   } else {
     const ib=inbox().length;
     h+=`<div class="empty"><h3>Nada pendiente para ahora</h3><p>${doneToday().length?"Has hecho "+doneToday().length+" cosas hoy. Bien.":"Día limpio."} ${ib?`Tienes ${ib} cosa${ib>1?"s":""} en la bandeja.`:""}</p>
@@ -398,6 +417,8 @@ function viewNow(){
   h+=`<div class="label">¿Cómo vas de energía?</div><div class="energy">${["baja","media","alta"].map(e=>`<button class="chipbtn" data-act="energy" data-e="${e}" aria-pressed="${S.energy===e}">${e[0].toUpperCase()+e.slice(1)}</button>`).join("")}<span class="hint">${S.energy?"Te enseño tareas que encajan":"Si vas justo, marca baja"}</span></div>`;
   const left=todays().length, dn=doneToday().length;
   h+=`<div class="label">Hoy <small>${dn} hecho${dn===1?"":"s"} · ${left} por hacer</small></div><div class="bar"><i style="width:${dn+left?dn/(dn+left)*100:0}%"></i></div>`;
+  const w=winsToday(); if(w)h+=`<p class="wins">Y además ${w} rato${w>1?"s":""} de foco. Empezar también cuenta.</p>`;
+  const hr=new Date().getHours(); if(hr>=19||hr<3)h+=`<button class="btn line" style="width:100%;margin-top:14px" data-act="dump">${I.mic} Dictar lo de mañana</button>`;
   h+=`<div style="margin-top:14px">${exBanner()}</div>`;
   return h;
 }
@@ -482,7 +503,7 @@ function sheet(html,onClose){
   d._onClose=onClose;layer.appendChild(d);
   return d;
 }
-function closeSheet(){const d=$("#scrim");if(d){d.remove();d._onClose&&d._onClose();render()}}
+function closeSheet(){const d=$("#scrim");if(d){if(capWhen==="dump"){capWhen=null;if(rec){try{rec.stop()}catch(e){}}}d.remove();d._onClose&&d._onClose();render()}}
 
 /* Captura */
 let capWhen=null,capIdea=false,capArea=null;
@@ -502,6 +523,7 @@ function openCapture(idea){
   if(capIdea&&hasMic)setTimeout(mic,150);
 }
 function updParsed(){
+  if(capWhen==="dump")return;
   const ta=$("#capt");if(!ta)return;
   const p=parse(ta.value);
   if(capIdea){
@@ -543,12 +565,12 @@ function mic(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
   if(rec){try{rec.stop()}catch(e){}return}
   try{
-    rec=new SR();rec.lang="es-ES";rec.interimResults=true;rec.continuous=false;
+    rec=new SR();rec.lang="es-ES";rec.interimResults=true;rec.continuous=capWhen==="dump";
     const b=$("#micb");b&&b.classList.add("rec");
     const base=$("#capt").value;
     rec.onresult=e=>{let s="";for(const r of e.results)s+=r[0].transcript;$("#capt").value=(base?base+" ":"")+s;updParsed()};
     rec.onerror=()=>{toast("No he podido usar el micro aquí. Prueba desde la app instalada.")};
-    rec.onend=()=>{rec=null;const b=$("#micb");b&&b.classList.remove("rec");const ta=$("#capt");if(capIdea&&ta&&ta.value.trim()&&ta.value!==base)setTimeout(()=>{if($("#capt"))capSave()},900)};
+    rec.onend=()=>{rec=null;const b=$("#micb");b&&b.classList.remove("rec");const ta=$("#capt");if(capIdea&&ta&&ta.value.trim()&&ta.value!==base)setTimeout(()=>{if($("#capt"))capSave()},900);if(capWhen==="dump"&&ta&&ta.value.trim()){const b2=document.querySelector('[data-act="dump-split"]');b2&&b2.click()}};
     rec.start();
   }catch(e){rec=null;toast("No he podido usar el micro aquí.")}
 }
@@ -587,6 +609,95 @@ function setWhen(k,w,d){
   k.order=Date.now();
 }
 
+/* Atascos: "Me he atascado" y sus ayudas */
+function openStuck(id,auto){
+  const k=byId(id);if(!k)return;
+  sheet(`<h3>${auto?"Esta tarea se te resiste":"¿Qué te pasa con esta tarea?"}</h3>
+  <p class="hint" style="margin:-6px 0 0">${auto?`La has dejado para luego ${k.skips} veces. Es normal: casi siempre hay un motivo concreto.`:"Elige lo que más se parezca. Cada cosa tiene su ayuda."} <b>${esc(k.text)}</b></p>
+  <div class="why">
+   <button data-act="stuck-why" data-why="start" data-id="${id}">No sé por dónde empezar<small>La partimos en pasitos y solo ves el primero</small></button>
+   <button data-act="stuck-why" data-why="big" data-id="${id}">Me agobia, es demasiado<small>Hacemos una versión fea y 5 minutos</small></button>
+   <button data-act="stuck-why" data-why="bored" data-id="${id}">Me aburre<small>Eliges un premio y vamos con 5 minutos</small></button>
+   <button data-act="stuck-why" data-why="missing" data-id="${id}">Me falta algo para hacerla<small>Apuntamos qué falta y la aparcamos</small></button>
+  </div>
+  ${auto?`<div class="actions"><button class="btn ghost" data-act="when" data-id="${id}">Otro día</button><button class="btn ghost" data-act="del" data-id="${id}">No hace falta, borrar</button></div>`:""}`);
+}
+const STEP_HINTS=["Abrir lo que necesito","Escribir una sola frase","Buscar el dato que falta","Mandar el mensaje","Dejarlo a medias y avisar"];
+function openSteps(id){
+  const k=byId(id);if(!k)return;
+  k.steps=k.steps||[];
+  if(!k.steps.length&&k.step)k.steps.push({t:k.step,done:false});
+  const list=k.steps.map((s,i)=>`<li class="${s.done?"off":""}"><input type="text" value="${esc(s.t)}" data-stepi="${i}" aria-label="Paso ${i+1}"><button class="ib" data-act="stepdel" data-i="${i}" data-id="${id}" aria-label="Quitar paso">${I.x}</button></li>`).join("");
+  sheet(`<h3>Partirla en pasitos</h3>
+  <p class="hint" style="margin:-6px 0 0">Pasos tan pequeños que den casi risa. En Ahora solo verás el primero.</p>
+  <ul class="dumpl" id="steplist">${list}</ul>
+  <div class="inline"><input class="field" id="newstep" placeholder="${k.steps.length?"Siguiente paso":"Primer paso, de 2 minutos"}" aria-label="Nuevo paso"><button class="btn small ghost" data-act="stepadd" data-id="${id}">Añadir</button></div>
+  <div class="chips">${STEP_HINTS.map(t=>`<button class="chipbtn" data-act="stepadd" data-t="${esc(t)}" data-id="${id}">${esc(t)}</button>`).join("")}</div>
+  <button class="btn done" data-act="close">Listo</button>`);
+  $("#scrim").dataset.id=id;
+  setTimeout(()=>{const n=$("#newstep");n&&n.focus()},60);
+}
+function openBig(id){
+  const k=byId(id);if(!k)return;
+  sheet(`<h3>Versión fea</h3><p class="hint" style="margin:-6px 0 0">¿Cuál es la versión más cutre que ya contaría como hecha? Hecho es mejor que perfecto.</p>
+  <input class="field" id="ugly" value="${esc(k.ugly||"")}" placeholder="Ej: mandar 3 líneas aunque no esté pulido">
+  <div class="actions"><button class="btn primary" data-act="ugly-go" data-id="${id}">${I.play}Guardar y 5 minutos</button></div>`);
+  setTimeout(()=>{const n=$("#ugly");n&&n.focus()},60);
+}
+const REWARDS=["Un café","Una canción que me guste","Salir 5 min a la calle","Algo rico","10 min de móvil"];
+function openBored(id){
+  const k=byId(id);if(!k)return;
+  sheet(`<h3>Ponle premio</h3><p class="hint" style="margin:-6px 0 0">Elige qué te das al acabar. Luego, solo 5 minutos.</p>
+  <div class="chips">${REWARDS.map(r=>`<button class="chipbtn" data-act="reward" data-r2="${esc(r)}" data-id="${id}" aria-pressed="${k.reward===r}">${esc(r)}</button>`).join("")}</div>
+  <div class="inline"><input class="field" id="rewardc" placeholder="Otro premio" value="${REWARDS.includes(k.reward)?"":esc(k.reward||"")}"></div>
+  <div class="actions"><button class="btn primary" data-act="reward-go" data-id="${id}">${I.play}Empezar 5 minutos</button></div>`);
+}
+function openMissing(id){
+  const k=byId(id);if(!k)return;
+  sheet(`<h3>¿Qué te falta?</h3><p class="hint" style="margin:-6px 0 0">Lo apunto como tarea para hoy y esta la aparco hasta mañana.</p>
+  <input class="field" id="missing" placeholder="Ej: pedirle el número de factura a Ana">
+  <div class="actions"><button class="btn primary" data-act="missing-go" data-id="${id}">Apuntar y aparcar</button></div>`);
+  setTimeout(()=>{const n=$("#missing");n&&n.focus()},60);
+}
+
+/* Volcado de noche: dictar todo y convertirlo en tareas de mañana */
+let dumpItems=[];
+function splitDump(text){
+  const CONN="luego|después|despues|también|tambien|además|ademas|otra cosa|aparte";
+  const VERB="tengo que|hay que|necesito|me toca|debo|he de|quiero";
+  let parts=text.replace(/\s+/g," ")
+    .split(new RegExp(`[.;\\n!?]+|,\\s*(?:y\\s+)?(?=(?:${CONN}|${VERB})\\b)|\\s+(?:y\\s+)?(?:${CONN})\\s+|\\s+y\\s+(?=(?:${VERB})\\s)|,?\\s+(?=(?:${VERB})\\s)`,"i"));
+  return parts.map(p=>(p||"").trim()
+      .replace(new RegExp(`^(?:y|que|e|pues|vale|bueno|entonces|${CONN})\\s+`,"i"),"")
+      .replace(/^(?:mañana|por la mañana)\s+/i,"")
+      .replace(new RegExp(`^(?:${VERB})\\s+`,"i"),"")
+      .replace(/[,\s]+$/,""))
+    .filter(p=>p.length>2&&!/^(mañana|hoy|vale|bueno|pues|entonces|a ver|vamos|y nada)$/i.test(p))
+    .map(p=>p[0].toUpperCase()+p.slice(1));
+}
+function openDump(){
+  dumpItems=[];
+  const hasMic=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  sheet(`<h3>Lo de mañana</h3>
+  <p class="hint" style="margin:-6px 0 0">Suéltalo todo seguido, como te salga. Luego lo separo en tareas para mañana.</p>
+  <div class="cap"><textarea id="capt" style="height:130px" placeholder="Ej: mañana tengo que llamar al gestor a las 10, luego grabar el short y también comprar pilas"></textarea>
+  <div class="side">${hasMic?`<button id="micb" data-act="mic" aria-label="Dictar">${I.mic}</button>`:""}<button class="go" data-act="dump-split" aria-label="Separar en tareas">${I.send}</button></div></div>
+  <div class="parsed" id="parsed">${hasMic?"Toca el micro y habla. Cuando acabes, toca la flecha.":"Escríbelo o usa el dictado del teclado. Cuando acabes, toca la flecha."}</div>
+  <div class="chips" id="capchips"></div>
+  <ul class="dumpl" id="dumpl"></ul>
+  <div id="dumpsave"></div>`);
+  capIdea=false;capWhen="dump";
+  if(hasMic)setTimeout(mic,150);
+}
+function drawDump(){
+  const ul=$("#dumpl");if(!ul)return;
+  ul.innerHTML=dumpItems.map((d,i)=>`<li class="${d.on?"":"off"}"><input type="text" value="${esc(d.t)}" data-dumpi="${i}" aria-label="Tarea ${i+1}">${d.time?`<span class="pill">${I.clock}${d.time}</span>`:""}<button class="ib ${d.imp?"on":""}" data-act="dump-star" data-i="${i}" aria-label="Importante">${d.imp?I.starF:I.star}</button><button class="ib" data-act="dump-toggle" data-i="${i}" aria-label="${d.on?"Quitar":"Volver a poner"}">${d.on?I.x:I.check}</button></li>`).join("");
+  const n=dumpItems.filter(d=>d.on).length;
+  $("#dumpsave").innerHTML=dumpItems.length?`<p class="hint" style="margin:0 0 8px">Marca con estrella hasta 3 importantes. Corrige lo que haya salido mal.</p><button class="btn primary" style="width:100%" data-act="dump-save">Guardar ${n} tarea${n===1?"":"s"} para mañana</button>`:"";
+  $("#parsed").textContent=dumpItems.length?`He sacado ${dumpItems.length} tarea${dumpItems.length>1?"s":""}.`:"No he encontrado tareas. Prueba a decirlo con frases cortas.";
+}
+function dumpDay(){const h=new Date().getHours();return h<5?today():addDays(today(),1)}
+
 /* Ajustes */
 function openSettings(){
   const np=("Notification" in window)?Notification.permission:"unsupported";
@@ -621,10 +732,12 @@ function drawFocus(){
   const T=S.timer, left=T?Math.max(0,T.end-Date.now()):0, ended=T&&left===0;
   f.innerHTML=`<div class="in"><div class="ft"><span class="pill">Modo foco</span><button class="iconbtn" data-act="fclose" aria-label="Salir">${I.x}</button></div>
   <h2>${esc(k.text)}</h2>
-  ${k.step?`<div class="stepbig"><b>Empieza por aquí</b>${esc(k.step)}</div>`:""}
+  ${(()=>{const cs=curStep(k);return cs?`<div class="stepbig"><b>${cs.i>=0?`Paso ${cs.i+1} de ${cs.n}`:"Empieza por aquí"}</b>${esc(cs.text)}${cs.i>=0?`<br><button class="s-edit" data-act="stepdone" data-id="${k.id}" style="margin-top:8px">${I.check} Paso hecho</button>`:""}</div>`:""})()}
+  ${k.ugly?`<p class="hint" style="text-align:center;margin:0">Versión fea vale: <b>${esc(k.ugly)}</b></p>`:""}
+  ${k.reward?`<p class="hint" style="text-align:center;margin:0">Premio al acabar: <b>${esc(k.reward)}</b></p>`:""}
   <div class="ring" id="ring">${ringSVG(T?left/T.dur:0)}<div class="tm"><div><span id="tmv">${T?fmt(left):"25:00"}</span><small>${ended?"Tiempo":"Concéntrate solo en esto"}</small></div></div></div>
   <div class="grow"></div>
-  ${ended?`<p class="hint" style="text-align:center">Se acabó el bloque. ¿Cómo vas?</p><div class="actions"><button class="btn done" data-act="fdone" style="grid-column:1/-1">${I.check} Lo he terminado</button><button class="btn ghost" data-act="fmore" data-m="25">Seguir 25 min</button><button class="btn ghost" data-act="fmore" data-m="5">Descanso 5 min</button><button class="btn line" data-act="fclose" style="grid-column:1/-1">Parar por ahora</button></div>`
+  ${ended?`<p class="hint" style="text-align:center">Se acabó el bloque. Ya has empezado, eso cuenta. ¿Sigues?</p><div class="actions"><button class="btn done" data-act="fdone" style="grid-column:1/-1">${I.check} Lo he terminado</button><button class="btn ghost" data-act="fmore" data-m="25">Seguir 25 min</button><button class="btn ghost" data-act="fmore" data-m="5">Descanso 5 min</button><button class="btn line" data-act="fclose" style="grid-column:1/-1">Paro aquí, por hoy vale</button></div>`
   :`<div class="chips" style="justify-content:center">${[10,25,45].map(m=>`<button class="chipbtn" data-act="fmore" data-m="${m}" aria-pressed="${T&&T.dur===m*60000}">${m} min</button>`).join("")}</div>
   <div class="actions"><button class="btn done" data-act="fdone" style="grid-column:1/-1;min-height:60px">${I.check} Hecho</button><button class="btn ghost" data-act="fclose" style="grid-column:1/-1">Parar por ahora</button></div>`}</div>`;
 }
@@ -633,7 +746,7 @@ const fmt=ms=>{const s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+":"+pad(s
 function tickFocus(){
   const T=S.timer;if(!T)return;
   const left=Math.max(0,T.end-Date.now());
-  if(left===0&&!T.ended){T.ended=true;save();const k=byId(T.id);ping(k?"Tiempo: "+k.text:"Tiempo","Se acabó el bloque. ¿Sigues o paras?",true);if(focusId)drawFocus();return}
+  if(left===0&&!T.ended){T.ended=true;if(T.dur>=4*60000){S.wins[today()]=(S.wins[today()]||0)+1}save();const k=byId(T.id);ping(k?"Tiempo: "+k.text:"Tiempo","Se acabó el bloque. ¿Sigues o paras?",true);if(focusId)drawFocus();return}
   if(focusId&&$("#tmv")){$("#tmv").textContent=fmt(left);const a=$("#arc");if(a){const c=2*Math.PI*46;a.setAttribute("stroke-dashoffset",c*(1-left/T.dur))}}
 }
 
@@ -652,6 +765,7 @@ function playRoutine(rid){
   f.innerHTML=`<div class="in"><div class="ft"><span class="pill">Rutina de ${esc(r.name.toLowerCase())} · paso ${i+1} de ${r.items.length}</span><button class="iconbtn" data-act="rclose" aria-label="Salir">${I.x}</button></div>
   <div class="bar"><i style="width:${i/r.items.length*100}%"></i></div>
   <h2 style="margin-top:20px">${esc(it.text)}</h2>
+  ${it.act==="dump"?`<button class="btn primary" data-act="dump">${I.mic} Dictar ahora</button>`:""}
   ${rp.end?`<div class="ring">${ringSVG(left/rp.dur)}<div class="tm"><div><span id="tmv">${fmt(left)}</span><small>${it.mins} min para este paso</small></div></div></div>`:""}
   <div class="grow"></div>
   ${i+1<r.items.length?`<p class="hint" style="text-align:center">Después: ${esc(r.items[i+1].text)}</p>`:""}
@@ -760,7 +874,30 @@ document.addEventListener("click",e=>{
     case"settings":openSettings();break;
     case"toggle":if(!k)break;if(k.done){k.done=false;k.doneAt=0;save()}else complete(k,e);render();break;
     case"start":if(!k)break;startFocus(k.id,k.mins&&k.mins<=45?k.mins:25);break;
-    case"notnow":if(!k)break;k.order=Date.now();save();toast("Vale, luego vuelve");render();break;
+    case"notnow":if(!k)break;k.order=Date.now();k.skips=(k.skips||0)+1;save();render();if(k.skips>=3&&k.skips%3===0)openStuck(k.id,true);else toast("Vale, luego vuelve");break;
+    case"five":if(!k)break;S.timer=null;startFocus(k.id,5);break;
+    case"stuck":if(k)openStuck(k.id);break;
+    case"stuck-why":if(!k)break;{const w=b.dataset.why;w==="start"?openSteps(k.id):w==="big"?openBig(k.id):w==="bored"?openBored(k.id):openMissing(k.id)}break;
+    case"stepadd":{if(!k)break;const inp=$("#newstep");const t=(b.dataset.t||(inp&&inp.value)||"").trim();if(!t)break;k.steps=k.steps||[];k.steps.push({t,done:false});save();openSteps(k.id);break}
+    case"stepdel":if(!k)break;k.steps.splice(+b.dataset.i,1);save();openSteps(k.id);break;
+    case"stepdone":{if(!k)break;const cs=curStep(k);if(cs&&cs.i>=0){k.steps[cs.i].done=true;save();const nx=curStep(k);if(nx&&nx.i>=0){toast("Paso hecho. Siguiente: "+nx.text)}else{toast("Todos los pasos hechos")}celebrate(innerWidth/2,innerHeight/2)}if(focusId)drawFocus();render();break}
+    case"ugly-go":if(!k)break;k.ugly=($("#ugly").value||"").trim();save();closeSheet();S.timer=null;startFocus(k.id,5);break;
+    case"reward":if(!k)break;k.reward=b.dataset.r2;save();openBored(k.id);break;
+    case"reward-go":{if(!k)break;const c=($("#rewardc").value||"").trim();if(c)k.reward=c;save();closeSheet();S.timer=null;startFocus(k.id,5);break}
+    case"missing-go":{if(!k)break;const m=($("#missing").value||"").trim();if(!m){$("#missing").focus();break}
+      S.tasks.push({id:uid(),text:m,step:"",mins:0,energy:"",status:"today",date:today(),time:"",important:k.important&&importants().length<=3,area:k.area,done:false,doneAt:0,order:Date.now()-1,created:Date.now()});
+      setWhen(k,"tomorrow");k.skips=0;save();closeSheet();render();toast("Apuntado. La otra queda para mañana.");break}
+    case"dump":closePlay();openDump();break;
+    case"dump-split":{const t=($("#capt").value||"").trim();if(!t){$("#capt").focus();break}if(rec){try{rec.stop()}catch(e){}}
+      const day=dumpDay();const nImp=S.tasks.filter(x=>x.important&&!x.done&&x.date===day).length;
+      splitDump(t).forEach(x=>{if(dumpItems.some(d=>d.t===x))return;const p=parse(x);dumpItems.push({t:x,on:true,imp:false,time:p.time,area:p.area})});
+      $("#capt").value="";drawDump();break}
+    case"dump-star":{const d=dumpItems[+b.dataset.i];if(!d)break;if(!d.imp&&dumpItems.filter(x=>x.imp).length>=3){toast("Máximo 3 importantes");break}d.imp=!d.imp;d.on=true;drawDump();break}
+    case"dump-toggle":{const d=dumpItems[+b.dataset.i];if(!d)break;d.on=!d.on;if(!d.on)d.imp=false;drawDump();break}
+    case"dump-save":{const day=dumpDay();const st=day===today()?"today":"later";let n=0;
+      dumpItems.filter(d=>d.on&&d.t.trim()).forEach((d,i)=>{n++;S.tasks.push({id:uid(),text:d.t.trim(),step:"",mins:0,energy:"",status:st,date:day,time:d.time||"",important:d.imp,area:d.area||"",done:false,doneAt:0,order:Date.now()+i,created:Date.now(),fromDump:true})});
+      if(rp===null){const nr=S.routines.find(r=>r.items.some(i=>i.act==="dump"));if(nr){const it=nr.items.find(i=>i.act==="dump");rmark(nr.id,it.id,true)}}
+      save();dumpItems=[];capWhen=null;closeSheet();celebrate(innerWidth/2,innerHeight/2);toast(`${n} tarea${n===1?"":"s"} lista${n===1?"":"s"} para ${day===today()?"hoy":"mañana"}. A descansar.`);break}
     case"star":if(!k)break;
       if(!k.important&&importants().length>=3){toast("Ya tienes 3 importantes. Quita una antes.");break}
       k.important=!k.important;if(k.status!=="today"){k.status="today";k.date=today()}save();render();break;
@@ -817,12 +954,15 @@ document.addEventListener("change",e=>{
   if(el.dataset.ef){const k=byId($("#scrim")&&$("#scrim").dataset.id);if(!k)return;const f=el.dataset.ef,v=el.value.trim();
     if(f==="text"&&v)k.text=v;else if(f==="step")k.step=v;else if(f==="time"){k.time=v;if(v&&k.status!=="later"&&k.status!=="today"){setWhen(k,"today")}}else if(f==="date"&&v){setWhen(k,"date",v)}
     save();if(f==="date"||f==="time")openEdit(k.id)}
+  if(el.dataset.stepi!==undefined){const k=byId($("#scrim")&&$("#scrim").dataset.id);if(k&&k.steps[+el.dataset.stepi]){const v=el.value.trim();if(v)k.steps[+el.dataset.stepi].t=v;save()}}
+  if(el.dataset.dumpi!==undefined){const d=dumpItems[+el.dataset.dumpi];if(d){d.t=el.value;const p=parse(el.value);d.time=p.time;d.area=p.area||d.area}}
   if(el.dataset.sf){S.settings[el.dataset.sf]=el.value;if(el.dataset.sf==="home")S.settings.homeSet=true;save()}
   if(el.dataset.rf){const r=S.routines.find(x=>x.id===el.dataset.r);if(!r)return;r[el.dataset.rf]=el.value.trim()||(el.dataset.rf==="name"?r.name:"");save()}
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){if($("#scrim"))closeSheet()}
   if(e.key==="Enter"&&e.target.id&&e.target.id.startsWith("ri-")){const b=e.target.parentElement.querySelector('[data-act="radd"]');b&&b.click()}
+  if(e.key==="Enter"&&e.target.id==="newstep"){const b=document.querySelector('[data-act="stepadd"]:not([data-t])');b&&b.click()}
   if(e.key==="Enter"&&e.target.id==="newarea"){const b=document.querySelector('[data-act="aadd"]');b&&b.click()}
 });
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){rollover();if(!$("#scrim")&&!$("#focus"))render();checkReminders()}});
