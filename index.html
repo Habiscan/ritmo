@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
 <style>
-/* Layout: una columna estrecha de móvil, barra inferior de 4 pestañas y botón de captura flotante */
+/* Layout: una columna estrecha de móvil, 4 pestañas abajo, un solo botón para apuntar. Poco en pantalla. */
 :root{
   --bg:#EEF1F6; --surface:#FFFFFF; --ink:#18202F; --muted:#5A6479; --line:#D9DFEA;
   --accent:#2F4BC9; --accent-ink:#FFFFFF; --soft:#E3E8F6;
@@ -51,17 +51,17 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 /* cabecera */
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:6px 14px}
 .top .day{font-size:14px;color:var(--muted);letter-spacing:.01em}
-.top h1{font-size:28px;font-weight:800;letter-spacing:-.01em}
+.top h1{font-size:26px;font-weight:800;letter-spacing:-.01em}
 .iconbtn{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:var(--muted)}
 .iconbtn:hover{background:var(--soft)}
 
-.label{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.label{font-size:15px;font-weight:700;color:var(--muted);margin:26px 4px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .label small{letter-spacing:0;text-transform:none;font-weight:400}
 .hint{color:var(--muted);font-size:15px;margin:4px 4px 0}
 
 /* tarjeta AHORA */
-.now{background:var(--surface);border-radius:24px;padding:22px 20px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
-.now .kicker{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.now{background:var(--surface);border-radius:24px;padding:24px 20px 20px;display:flex;flex-direction:column;gap:16px;margin-top:8px}
+.now .kicker{font-size:15px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .now h2{font-size:30px;line-height:1.12;font-weight:800;letter-spacing:-.015em}
 .now h2 .hl{background:linear-gradient(transparent 58%,var(--hl) 58%);padding:0 2px}
 .step{background:var(--soft);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
@@ -99,8 +99,8 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0}
 
 /* listas */
 ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.task{background:var(--surface);border-radius:var(--r);display:flex;align-items:center;gap:4px;padding:6px 4px 6px 6px;box-shadow:var(--shadow)}
-.task.imp{box-shadow:inset 4px 0 0 var(--mark),var(--shadow)}
+.task{background:var(--surface);border-radius:var(--r);display:flex;align-items:center;gap:4px;padding:4px 6px 4px 4px;min-height:56px}
+.task.imp .tt{font-weight:700}
 .task .cb{flex:none;width:44px;height:44px;display:grid;place-items:center}
 .task .cb i{width:26px;height:26px;border-radius:9px;border:2.5px solid var(--line);display:grid;place-items:center;color:transparent;transition:transform .15s}
 .task.done .cb i{background:var(--ok);border-color:var(--ok);color:var(--surface)}
@@ -126,7 +126,7 @@ details.donebox summary::-webkit-details-marker{display:none}
 .bar i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
 
 /* rutinas */
-.rcard{background:var(--surface);border-radius:20px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.rcard{background:var(--surface);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px}
 .rhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .rhead h3{font-size:22px}
 .rhead .sub{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
@@ -146,8 +146,8 @@ details.donebox summary::-webkit-details-marker{display:none}
 
 /* barra inferior */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.tabs{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
-.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 10px;font-size:12px;min-width:0;font-weight:700;color:var(--muted);position:relative}
+.tabs{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 10px;font-size:13px;min-width:0;font-weight:700;color:var(--muted);position:relative}
 .tab[aria-current="page"]{color:var(--accent)}
 .tab .badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--mark);color:var(--mark-ink);font-size:11px;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px}
 .fab{position:fixed;z-index:21;right:max(18px,calc(env(safe-area-inset-right,0px) + 18px));bottom:calc(env(safe-area-inset-bottom,0px) + 78px);height:62px;padding:0 22px 0 18px;border-radius:31px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;box-shadow:0 8px 24px rgba(30,50,160,.35)}
@@ -156,8 +156,8 @@ details.donebox summary::-webkit-details-marker{display:none}
 .cap.idea textarea{border-color:var(--mark)}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 @media (max-width:360px){.pgrid{grid-template-columns:1fr}}
-.pcard{background:var(--surface);border-radius:20px;padding:16px;box-shadow:var(--shadow);text-align:left;display:flex;flex-direction:column;gap:10px;min-width:0;position:relative;overflow:hidden}
-.pcard::before{content:"";position:absolute;inset:0 0 auto;height:5px;background:var(--c)}
+.pcard{background:var(--surface);border-radius:18px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:10px;min-width:0;position:relative;overflow:hidden}
+.pcard h3::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:8px;vertical-align:2px}
 .pcard h3{font-size:19px;line-height:1.15;overflow-wrap:anywhere}
 .pcard .nums{display:flex;gap:6px;flex-wrap:wrap}
 .pcard .next{font-size:14px;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -211,6 +211,20 @@ details.donebox summary::-webkit-details-marker{display:none}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.stepline{font-size:17px;color:var(--ink);background:var(--soft);border-radius:14px;padding:12px 14px}
+.stepline span{display:block;font-size:14px;color:var(--muted)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.link{color:var(--accent);font-weight:700;font-size:16px;padding:10px 4px;align-self:center}
+.tally{text-align:center;color:var(--muted);font-size:15px;margin:18px 0 0}
+.task .when{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.task .hoybtn{flex:none;font-size:14px;font-weight:700;color:var(--accent);padding:10px 12px;border-radius:12px}
+.task .hoybtn:hover{background:var(--soft)}
+.sheet details summary{cursor:pointer;color:var(--accent);font-weight:700;padding:8px 0;list-style:none}
+.sheet details summary::-webkit-details-marker{display:none}
+.sheet details[open]{display:flex;flex-direction:column;gap:14px}
+.rowlink{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;border-radius:14px;background:var(--soft);font-weight:700;text-align:left}
+.rowlink small{font-weight:400;color:var(--muted)}
+.back{display:flex;align-items:center;gap:4px;color:var(--muted);font-weight:700;padding:6px 0}
 </style>
 
 </head>
@@ -220,7 +234,6 @@ details.donebox summary::-webkit-details-marker{display:none}
 <button class="fab" id="fab" data-act="capture" aria-label="Apuntar algo">
   <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Apuntar
 </button>
-<button class="fab idea" id="fabidea" data-act="idea" aria-label="Idea rápida por voz para revisar en casa"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
 <nav class="dock" aria-label="Secciones"><div class="tabs" id="tabs"></div></nav>
 <div id="layer"></div>
 
@@ -350,45 +363,40 @@ function parse(text){
 /* ---------- interfaz ---------- */
 let tab="now";
 try{tab=sessionStorage.getItem("ritmo.tab")||"now"}catch(e){}
-const TABS=[["now","Ahora",I.tNow],["today","Hoy",I.tToday],["inbox","Bandeja",I.tInbox],["proj","Proyectos",I.tProj],["rout","Rutinas",I.tRout]];
+const TABS=[["now","Ahora",I.tNow],["today","Hoy",I.tToday],["inbox","Bandeja",I.tInbox],["proj","Proyectos",I.tProj]];
 function renderTabs(){
-  const n=inbox().length+ideas().length;
-  $("#tabs").innerHTML=TABS.map(([k,l,ic])=>`<button class="tab" data-act="tab" data-tab="${k}" ${tab===k?'aria-current="page"':""}>${ic}<span>${l}</span>${k==="inbox"&&n?`<span class="badge">${n}</span>`:""}</button>`).join("");
+  const n=inbox().length;
+  $("#tabs").innerHTML=TABS.map(([k,l,ic])=>`<button class="tab" data-act="tab" data-tab="${k}" ${(tab===k||(k==="today"&&tab==="rout"))?'aria-current="page"':""}>${ic}<span>${l}</span>${k==="inbox"&&n?`<span class="badge">${n}</span>`:""}</button>`).join("");
 }
 function areaPill(a){if(!a)return"";const i=S.areas.indexOf(a);return `<span class="pill" style="--c:${AREA_COLORS[(i<0?0:i)%AREA_COLORS.length]}"><span class="dot"></span>${esc(a)}</span>`}
 let o_noReview=false;
 function meta(k){
-  let h="";
-  if(k.time)h+=`<span class="pill">${I.clock}${k.time}</span>`;
-  if(k.status==="later"&&k.date)h+=`<span class="pill">${esc(niceDate(k.date))}</span>`;
-  if(k.mins)h+=`<span class="pill">${k.mins} min</span>`;
-  if(k.energy)h+=`<span class="pill">energía ${k.energy}</span>`;
-  h+=areaPill(k.area);
-  if(k.review&&!o_noReview)h+=`<span class="pill mark">revisar en casa</span>`;
-  if(k.ex)h+=`<span class="pill ex">ejemplo</span>`;
-  return h;
+  const bits=[];
+  if(k.time)bits.push(k.time);
+  if(k.status==="later"&&k.date)bits.push(niceDate(k.date));
+  if(k.status==="someday")bits.push("Algún día");
+  if(o_showArea&&k.area)bits.push(k.area);
+  if(k.ex)bits.push("ejemplo");
+  return bits.length?`<span class="when">${esc(bits.join(" · "))}</span>`:"";
 }
+let o_showArea=false;
 function niceDate(d){
   const t=today();if(d===t)return"Hoy";if(d===addDays(t,1))return"Mañana";if(d===addDays(t,2))return"Pasado mañana";
   return new Date(d+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
 }
 function taskRow(k,o={}){
-  return `<li class="task ${k.important?"imp":""} ${k.done?"done":""} ${o.quick?"col":""}" data-id="${k.id}">
-   ${o.quick?'<div class="row">':""}
-   <button class="cb" data-act="toggle" data-id="${k.id}" aria-label="${k.done?"Desmarcar":"Marcar como hecha"}"><i>${I.check}</i></button>
-   <button class="tb" data-act="${k.done?"edit":"start"}" data-id="${k.id}"><span class="tt">${esc(k.text)}</span><span class="meta">${meta(k)}</span></button>
-   ${o.star?`<button class="ib ${k.important?"on":""}" data-act="star" data-id="${k.id}" aria-label="${k.important?"Quitar de importantes":"Hacer importante"}">${k.important?I.starF:I.star}</button>`:""}
-   <button class="ib" data-act="edit" data-id="${k.id}" aria-label="Opciones">${I.more}</button>
-   ${o.quick?`</div><div class="quick">${o.idea?`<button class="chipbtn" data-act="reviewed" data-id="${k.id}">Revisada</button>`:""}<button class="chipbtn" data-act="move" data-to="today" data-id="${k.id}">Hacer hoy</button><button class="chipbtn" data-act="when" data-id="${k.id}">Otro día</button><button class="chipbtn" data-act="del" data-id="${k.id}">Borrar</button></div>`:""}
+  return `<li class="task ${k.important?"imp":""} ${k.done?"done":""}" data-id="${k.id}">
+   ${o.nocb?`<span style="width:12px;flex:none"></span>`:`<button class="cb" data-act="toggle" data-id="${k.id}" aria-label="${k.done?"Desmarcar":"Marcar como hecha"}"><i>${I.check}</i></button>`}
+   <button class="tb" data-act="edit" data-id="${k.id}"><span class="tt">${esc(k.text)}</span>${meta(k)}</button>
+   ${o.hoy&&!k.done?`<button class="hoybtn" data-act="move" data-to="today" data-id="${k.id}">A hoy</button>`:""}
   </li>`;
 }
 function greet(){const h=new Date().getHours();return h<6?"Buenas noches":h<13?"Buenos días":h<21?"Buenas tardes":"Buenas noches"}
-function header(title){
+function header(title,back){
   let d=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});d=d[0].toUpperCase()+d.slice(1);
-  const pend=(S.changes||[]).filter(c=>!c.sent).length;
-  return `<header class="top"><div><div class="day">${d}</div><h1>${title}</h1></div><div style="display:flex;gap:4px;align-items:center"><button class="chipbtn" data-act="tab" data-tab="chg" aria-label="Cambios para la app"${tab==="chg"?' aria-pressed="true"':""}>Cambios${pend?` · ${pend}`:""}</button><button class="iconbtn" data-act="settings" aria-label="Ajustes">${I.gear}</button></div></header>`;
+  return `<header class="top"><div>${back?`<button class="back" data-act="tab" data-tab="${back[0]}">${I.back}${back[1]}</button>`:`<div class="day">${d}</div>`}<h1>${title}</h1></div><button class="chipbtn" data-act="settings" aria-label="Más: rutinas, cambios y ajustes">${I.more} Más</button></header>`;
 }
-function exBanner(){return S.tasks.some(k=>k.ex)?`<div class="banner"><span>Las tareas marcadas como <b>ejemplo</b> están para que veas cómo funciona.</span><button class="chipbtn" data-act="delex">Borrar ejemplos</button></div>`:""}
+function exBanner(){return S.tasks.some(k=>k.ex)?`<p class="hint" style="margin:6px 4px 0">Hay tareas de ejemplo. <button class="link" style="padding:0;font-size:15px" data-act="delex">Borrarlas</button></p>`:""}
 
 /* Ahora: una sola cosa */
 function nextTask(){
@@ -410,90 +418,79 @@ function viewNow(){
   const k=nextTask();
   if(r){
     const d=rDone(r),n=r.items.length,mins=r.items.reduce((s,i)=>s+(+i.mins||0),0);
-    h+=`<section class="now" aria-label="Lo siguiente"><div class="kicker">Toca ahora <span class="pill">Rutina · ${d}/${n}</span><span class="pill">${mins} min</span></div>
+    const nx=r.items.find(i=>!((S.rlog[today()]||{})[r.id]||{})[i.id]);
+    h+=`<section class="now" aria-label="Lo siguiente"><div class="kicker">Toca la rutina · ${n-d} paso${n-d===1?"":"s"}, unos ${mins} min</div>
     <h2>Rutina de <span class="hl">${esc(r.name.toLowerCase())}</span></h2>
-    <div class="bar"><i style="width:${d/n*100}%"></i></div>
-    <div class="actions"><button class="btn primary" data-act="rplay" data-r="${r.id}">${I.play}Empezar rutina</button>
-    <button class="btn ghost" data-act="rskip" data-r="${r.id}">Ahora no</button><button class="btn line" data-act="tab" data-tab="rout">Ver pasos</button></div></section>`;
-    if(k)h+=`<p class="hint">Después: ${esc(k.text)}</p>`;
+    ${nx?`<p class="stepline"><span>Empieza por</span>${esc(nx.text)}</p>`:""}
+    <button class="btn primary" data-act="rplay" data-r="${r.id}">${I.play}Empezar</button>
+    <button class="link" data-act="rskip" data-r="${r.id}">Ahora no</button></section>`;
   } else if(k){
-    h+=`<section class="now" aria-label="Lo siguiente"><div class="kicker">Lo siguiente ${k.important?'<span class="pill mark">Importante</span>':""}${k.time?`<span class="pill">${I.clock}${k.time}</span>`:""}${k.mins?`<span class="pill">${k.mins} min</span>`:""}${areaPill(k.area)}${k.ex?'<span class="pill ex">ejemplo</span>':""}</div>
-    <h2><span class="hl">${esc(k.text)}</span></h2>
-    ${(()=>{const cs=curStep(k);return `<div class="step"><div style="flex:1;min-width:0"><b>${cs&&cs.i>=0?`Paso ${cs.i+1} de ${cs.n}`:"Primer paso (2 minutos)"}</b>${cs?`<span class="big">${esc(cs.text)}</span>`:`<span class="hint" style="margin:0">¿Cuál es lo más pequeño que puedes hacer?</span>`}
-      <div class="row2">${cs&&cs.i>=0?`<button class="s-edit" data-act="stepdone" data-id="${k.id}">${I.check} Paso hecho</button>`:""}<button class="s-edit" data-act="stuck-why" data-why="start" data-id="${k.id}">${cs?"Cambiar pasos":"Partir en pasitos"}</button></div></div></div>`})()}
-    ${k.reward?`<p class="hint" style="margin:0">Premio al acabar: <b>${esc(k.reward)}</b></p>`:""}
-    <div class="actions"><button class="btn primary" data-act="start" data-id="${k.id}">${I.play}Empezar</button>
-    <button class="btn ghost" data-act="five" data-id="${k.id}">Solo 5 minutos</button><button class="btn ghost" data-act="stuck" data-id="${k.id}">Me he atascado</button>
-    <button class="btn line" data-act="notnow" data-id="${k.id}">Ahora no</button><button class="btn done" data-act="toggle" data-id="${k.id}">${I.check} Hecho</button></div></section>`;
+    const cs=curStep(k);
+    h+=`<section class="now" aria-label="Lo siguiente"><div class="kicker">Lo siguiente${k.time?` · a las ${k.time}`:""}</div>
+    <h2><span class="hl">${esc(k.text)}</span></h2>${k.ex?`<p class="hint" style="margin:-8px 0 0">Tarea de ejemplo · <button class="link" style="padding:0;font-size:15px" data-act="delex">borrar ejemplos</button></p>`:""}
+    ${cs?`<p class="stepline"><span>${cs.i>=0?`Paso ${cs.i+1} de ${cs.n}`:"Empieza por"}</span>${esc(cs.text)}</p>`:""}
+    <button class="btn primary" data-act="start" data-id="${k.id}">${I.play}Empezar</button>
+    <div class="duo"><button class="btn ghost" data-act="notnow" data-id="${k.id}">Ahora no</button><button class="btn done" data-act="toggle" data-id="${k.id}">${I.check} Hecho</button></div>
+    <button class="link" data-act="stuck" data-id="${k.id}">Me cuesta empezar</button></section>`;
   } else {
     const ib=inbox().length;
-    h+=`<div class="empty"><h3>Nada pendiente para ahora</h3><p>${doneToday().length?"Has hecho "+doneToday().length+" cosas hoy. Bien.":"Día limpio."} ${ib?`Tienes ${ib} cosa${ib>1?"s":""} en la bandeja.`:""}</p>
-    <div class="rrow" style="justify-content:center">${ib?'<button class="btn small ghost" data-act="tab" data-tab="inbox">Mirar la bandeja</button>':""}<button class="btn small ghost" data-act="capture">Apuntar algo</button></div></div>`;
+    h+=`<div class="empty" style="margin-top:8px"><h3>Nada para ahora</h3><p>${doneToday().length?"Buen día. Puedes descansar.":"Día limpio."}</p>
+    ${ib?`<button class="link" data-act="tab" data-tab="inbox">Mirar la bandeja (${ib})</button>`:""}</div>`;
   }
-  h+=`<div class="label">¿Cómo vas de energía?</div><div class="energy">${["baja","media","alta"].map(e=>`<button class="chipbtn" data-act="energy" data-e="${e}" aria-pressed="${S.energy===e}">${e[0].toUpperCase()+e.slice(1)}</button>`).join("")}<span class="hint">${S.energy?"Te enseño tareas que encajan":"Si vas justo, marca baja"}</span></div>`;
   const left=todays().length, dn=doneToday().length;
-  h+=`<div class="label">Hoy <small>${dn} hecho${dn===1?"":"s"} · ${left} por hacer</small></div><div class="bar"><i style="width:${dn+left?dn/(dn+left)*100:0}%"></i></div>`;
-  const w=winsToday(); if(w)h+=`<p class="wins">Y además ${w} rato${w>1?"s":""} de foco. Empezar también cuenta.</p>`;
-  const hr=new Date().getHours(); if(hr>=19||hr<3)h+=`<button class="btn line" style="width:100%;margin-top:14px" data-act="dump">${I.mic} Dictar lo de mañana</button>`;
-  h+=`<div style="margin-top:14px">${exBanner()}</div>`;
+  if(dn)h+=`<p class="tally">${dn} de ${dn+left} hechas hoy${winsToday()?` · ${winsToday()} rato${winsToday()>1?"s":""} de foco`:""}</p>`;
+  const hr=new Date().getHours(); if(hr>=19||hr<3)h+=`<p style="text-align:center;margin:6px 0 0"><button class="link" data-act="dump">${I.mic} Dictar lo de mañana</button></p>`;
   return h;
 }
 
 /* Hoy */
 function viewToday(){
   let h=header("Hoy");
-  const imp=importants(), rest=todays().filter(k=>!k.important);
   h+=exBanner();
-  h+=`<div class="label">Lo importante <small>${imp.length} de 3</small></div><ul class="list">${imp.map(k=>taskRow(k,{star:true})).join("")}</ul>`;
-  for(let i=imp.length;i<3;i++)h+=`<div class="slot" style="margin-top:8px">Hueco libre. Toca la estrella de una tarea para subirla aquí.</div>`;
+  const imp=importants(), rest=todays().filter(k=>!k.important);
+  h+=`<div class="label">Lo importante</div>`;
+  h+=imp.length?`<ul class="list">${imp.map(k=>taskRow(k)).join("")}</ul>`:"";
+  if(!imp.length)h+=`<p class="hint" style="margin-top:0">Ninguna todavía. Toca una tarea para marcarla.</p>`;
+  h+=`<div class="label">Lo demás</div>`;
+  h+=rest.length?`<ul class="list">${rest.sort((a,b)=>(a.time||"99").localeCompare(b.time||"99")||a.order-b.order).map(k=>taskRow(k)).join("")}</ul>`:`<p class="hint">Nada más por hoy.</p>`;
   const rs=S.routines.filter(r=>r.items.length);
-  if(rs.length){h+=`<div class="label">Rutinas</div><ul class="list">${rs.map(r=>{const d=rDone(r),n=r.items.length;return `<li class="task ${d===n?"done":""}"><button class="cb" data-act="rplay" data-r="${r.id}" aria-label="Empezar rutina ${esc(r.name)}"><i>${I.check}</i></button><button class="tb" data-act="tab" data-tab="rout"><span class="tt">${esc(r.name)}</span><span class="meta"><span class="pill">${I.clock}${r.time||"--:--"}</span><span class="pill">${d}/${n}</span></span></button></li>`}).join("")}</ul>`}
-  h+=`<div class="label">Si da tiempo <small>${rest.length}</small></div>`;
-  h+=rest.length?`<ul class="list">${rest.sort((a,b)=>(a.time||"99").localeCompare(b.time||"99")||a.order-b.order).map(k=>taskRow(k,{star:true})).join("")}</ul>`:`<p class="hint">Nada más. Si te sobra tiempo, mira la bandeja.</p>`;
-  const up=S.tasks.filter(k=>!k.done&&k.status==="later").sort((a,b)=>a.date.localeCompare(b.date));
-  if(up.length)h+=`<div class="label">Próximos días</div><ul class="list">${up.map(k=>taskRow(k)).join("")}</ul>`;
+  if(rs.length){const dn=rs.reduce((x,r)=>x+rDone(r),0),tot=rs.reduce((x,r)=>x+r.items.length,0);h+=`<div class="label">Rutinas</div><button class="rowlink" data-act="tab" data-tab="rout"><span>${rs.length} rutina${rs.length>1?"s":""}</span><small>${dn?`${dn} de ${tot} pasos hoy`:"Ver"}</small></button>`}
   const dt=doneToday();
-  if(dt.length)h+=`<details class="donebox"><summary>Hecho hoy: ${dt.length} ${dt.length===1?"cosa":"cosas"}</summary><ul class="list">${dt.map(k=>taskRow(k)).join("")}</ul></details>`;
+  if(dt.length)h+=`<details class="donebox"><summary>Hecho hoy: ${dt.length}</summary><ul class="list">${dt.map(k=>taskRow(k)).join("")}</ul></details>`;
   return h;
 }
 
 /* Bandeja */
 function viewInbox(){
   let h=header("Bandeja");
-  const ib=inbox().sort((a,b)=>b.created-a.created);
-  const id=ideas();
-  if(id.length){
-    h+=`<div class="label">Revisar en casa <small>${id.length} idea${id.length>1?"s":""} · aviso a las ${S.settings.home}</small></div>`;
-    const groups={};id.forEach(k=>{(groups[k.area||"Sin proyecto"]=groups[k.area||"Sin proyecto"]||[]).push(k)});
-    o_noReview=true;
-    Object.keys(groups).sort((a,b)=>(a==="Sin proyecto")-(b==="Sin proyecto")||S.areas.indexOf(a)-S.areas.indexOf(b)).forEach(g=>{
-      h+=`<div class="group">${g==="Sin proyecto"?'<span class="pill">Sin proyecto</span>':areaPill(g)}<small class="hint" style="margin:0">${groups[g].length}</small></div><ul class="list">${groups[g].sort((a,b)=>b.created-a.created).map(k=>taskRow(k,{quick:true,idea:true})).join("")}</ul>`});
-    o_noReview=false;
-    h+=`<div class="label">Sin ordenar</div>`;
-  }
-  h+=`<p class="hint">Lo que has soltado. No hace falta ordenarlo ahora; cuando puedas, decide solo cuándo.</p>`;
-  h+=ib.length?`<ul class="list" style="margin-top:12px">${ib.map(k=>taskRow(k,{quick:true})).join("")}</ul>`:`<div class="empty" style="margin-top:12px"><h3>Bandeja vacía</h3><p>Cabeza despejada.</p></div>`;
-  const sd=S.tasks.filter(k=>!k.done&&k.status==="someday");
-  if(sd.length)h+=`<div class="label">Algún día <small>${sd.length}</small></div><ul class="list">${sd.map(k=>taskRow(k,{quick:true})).join("")}</ul>`;
+  const ib=inbox().sort((a,b)=>b.created-a.created), id=ideas().sort((a,b)=>b.created-a.created);
+  const later=S.tasks.filter(k=>!k.done&&(k.status==="later"||k.status==="someday")).sort((a,b)=>(a.date||"9").localeCompare(b.date||"9"));
+  if(!ib.length&&!id.length)h+=`<div class="empty" style="margin-top:8px"><h3>Bandeja vacía</h3><p>Cabeza despejada.</p></div>`;
+  if(ib.length)h+=`<div class="label">Sin ordenar</div><ul class="list">${ib.map(k=>taskRow(k,{hoy:true,nocb:true})).join("")}</ul>`;
+  o_showArea=true;
+  if(id.length)h+=`<div class="label">Ideas para revisar en casa</div><ul class="list">${id.map(k=>taskRow(k,{nocb:true})).join("")}</ul>`;
+  if(later.length)h+=`<details class="donebox"><summary style="color:var(--muted)">Más adelante (${later.length}) ›</summary><ul class="list">${later.map(k=>taskRow(k,{hoy:true,nocb:true})).join("")}</ul></details>`;
+  o_showArea=false;
   return h;
 }
 
 /* Proyectos */
-let openProj=null;
+let openProj=null,newProjOpen=false;
 const areaColor=a=>{const i=S.areas.indexOf(a);return AREA_COLORS[(i<0?0:i)%AREA_COLORS.length]};
 function projTasks(a){return S.tasks.filter(k=>a==="__none"?!k.area||!S.areas.includes(k.area):k.area===a)}
 function viewProj(){
   if(openProj!==null&&(openProj==="__none"||S.areas.includes(openProj)))return viewProjOne(openProj);
   openProj=null;
   let h=header("Proyectos");
-  h+=`<p class="hint">Todo lo de cada proyecto junto: tareas, ideas y lo que ya has hecho.</p><div class="pgrid">`;
-  const cards=S.areas.map(a=>{const t=projTasks(a),pend=t.filter(k=>!k.done&&!k.review),id=t.filter(k=>k.review&&!k.done),tod=pend.filter(k=>k.status==="today"&&k.date===today());
+  h+=`<div class="pgrid">`;
+  const order=S.areas.slice().sort((x,y)=>(projTasks(x).some(k=>!k.done)?0:1)-(projTasks(y).some(k=>!k.done)?0:1));
+  const cards=order.map(a=>{const t=projTasks(a),pend=t.filter(k=>!k.done&&!k.review),id=t.filter(k=>k.review&&!k.done),tod=pend.filter(k=>k.status==="today"&&k.date===today());
     const nx=tod.find(k=>k.important)||tod[0]||pend[0];
-    return `<button class="pcard" style="--c:${areaColor(a)}" data-act="popen" data-a="${esc(a)}"><h3>${esc(a)}</h3><span class="nums"><span class="pill">${pend.length} tarea${pend.length===1?"":"s"}</span>${id.length?`<span class="pill mark">${id.length} idea${id.length>1?"s":""}</span>`:""}${tod.length?`<span class="pill">${tod.length} hoy</span>`:""}</span>${nx?`<span class="next">${esc(nx.text)}</span>`:`<span class="next">Nada pendiente</span>`}</button>`}).join("");
+    return `<button class="pcard" style="--c:${areaColor(a)}${pend.length||id.length?"":";opacity:.6"}" data-act="popen" data-a="${esc(a)}"><h3>${esc(a)}</h3><span class="next">${pend.length?`${pend.length} tarea${pend.length===1?"":"s"}`:"Nada pendiente"}${id.length?` · ${id.length} idea${id.length>1?"s":""}`:""}</span></button>`}).join("");
   h+=cards;
   const none=projTasks("__none").filter(k=>!k.done);
-  if(none.length)h+=`<button class="pcard" style="--c:var(--line)" data-act="popen" data-a="__none"><h3>Sin proyecto</h3><span class="nums"><span class="pill">${none.length}</span></span><span class="next">Tareas sueltas</span></button>`;
-  h+=`</div><div class="inline" style="margin-top:14px"><input class="field" id="newproj" placeholder="Nuevo proyecto" aria-label="Nombre del nuevo proyecto"><button class="btn small ghost" data-act="padd">Crear</button></div>`;
+  if(none.length)h+=`<button class="pcard" style="--c:var(--line)" data-act="popen" data-a="__none"><h3>Sin proyecto</h3><span class="next">${none.length} tarea${none.length===1?"":"s"}</span></button>`;
+  h+=`</div>`+(newProjOpen?`<div class="inline" style="margin-top:14px"><input class="field" id="newproj" placeholder="Nombre del proyecto" aria-label="Nombre del nuevo proyecto"><button class="btn small ghost" data-act="padd">Crear</button></div>`:`<p style="text-align:center"><button class="link" data-act="pnew">+ Nuevo proyecto</button></p>`);
   return h;
 }
 function viewProjOne(a){
@@ -505,11 +502,11 @@ function viewProjOne(a){
   const hechas=t.filter(k=>k.done).sort((x,y)=>y.doneAt-x.doneAt).slice(0,20);
   let h=`<div class="phead" style="--c:${a==="__none"?"var(--line)":areaColor(a)}"><button class="iconbtn" data-act="pback" aria-label="Volver a proyectos">${I.back}</button><span class="sw"></span><h1>${esc(name)}</h1>${a!=="__none"?`<button class="iconbtn" data-act="pmenu" aria-label="Opciones del proyecto">${I.more}</button>`:""}</div>`;
   if(a!=="__none")h+=`<div class="inline" style="margin-top:8px"><input class="field" id="ptask" placeholder="Añadir tarea a ${esc(name)}" aria-label="Nueva tarea del proyecto"><button class="btn small ghost" data-act="ptadd" data-a="${esc(a)}">Añadir</button></div>
-  <div class="chips" style="margin-top:8px"><span class="hint" style="margin:0">Va a:</span>${[["inbox","Bandeja"],["today","Hoy"],["tomorrow","Mañana"]].map(([w,l])=>`<button class="chipbtn" data-act="ptwhen" data-w="${w}" aria-pressed="${pWhen===w}">${l}</button>`).join("")}</div>`;
-  if(ideasP.length)h+=`<div class="label">Ideas para revisar <small>${ideasP.length}</small></div><ul class="list">${(o_noReview=true,ideasP.map(k=>taskRow(k,{quick:true,idea:true})).join(""))}</ul>`;o_noReview=false;
-  if(hoy.length)h+=`<div class="label">Hoy <small>${hoy.length}</small></div><ul class="list">${hoy.map(k=>taskRow(k,{star:true})).join("")}</ul>`;
+`;
+  if(ideasP.length)h+=`<div class="label">Ideas para revisar <small>${ideasP.length}</small></div><ul class="list">${(o_noReview=true,ideasP.map(k=>taskRow(k)).join(""))}</ul>`;o_noReview=false;
+  if(hoy.length)h+=`<div class="label">Hoy <small>${hoy.length}</small></div><ul class="list">${hoy.map(k=>taskRow(k)).join("")}</ul>`;
   if(prox.length)h+=`<div class="label">Próximos días <small>${prox.length}</small></div><ul class="list">${prox.map(k=>taskRow(k)).join("")}</ul>`;
-  if(sueltas.length)h+=`<div class="label">Sin fecha <small>${sueltas.length}</small></div><ul class="list">${sueltas.map(k=>taskRow(k,{quick:true})).join("")}</ul>`;
+  if(sueltas.length)h+=`<div class="label">Sin fecha <small>${sueltas.length}</small></div><ul class="list">${sueltas.map(k=>taskRow(k,{hoy:true})).join("")}</ul>`;
   if(!ideasP.length&&!hoy.length&&!prox.length&&!sueltas.length)h+=`<div class="empty" style="margin-top:14px"><h3>Nada pendiente</h3><p>Apunta arriba lo siguiente que toque en este proyecto.</p></div>`;
   if(hechas.length)h+=`<details class="donebox"><summary>Hecho: ${hechas.length}</summary><ul class="list">${hechas.map(k=>taskRow(k)).join("")}</ul></details>`;
   return h;
@@ -536,7 +533,7 @@ function viewChg(){
   capWhen="chg";
   const hasMic=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
   const pend=S.changes.filter(c=>!c.sent), sent=S.changes.filter(c=>c.sent).slice(-15).reverse();
-  let h=header("Cambios");
+  let h=header("Cambios en la app",["now","Volver"]);
   h+=`<p class="hint">Di qué quieres meter, quitar o arreglar en la app. Cuando lo mandes, Claude lo recibe como tarea y lo aplica.</p>
   <div class="chips" style="margin-top:12px">${[["meter","Meter algo"],["quitar","Quitar algo"],["arreglar","Algo va mal"]].map(([k,l])=>`<button class="chipbtn" data-act="chgkind" data-k="${k}" aria-pressed="${chgKind===k}">${l}</button>`).join("")}</div>
   <div class="cap" style="margin-top:10px"><textarea id="chgt" placeholder="Ej: quiero que el botón de Hecho sea más grande" aria-label="Cambio que quieres"></textarea>
@@ -554,14 +551,17 @@ function viewChg(){
 
 /* Rutinas */
 let editR=null;
+let openR=null;
+function curRoutine(){const now=toMin(hmNow());let best=null;S.routines.forEach(r=>{if(r.time&&toMin(r.time)<=now+60)best=r});return (best||S.routines[0]||{}).id}
 function viewRout(){
-  let h=header("Rutinas");
-  h+=`<p class="hint">Lo que se repite cada día, paso a paso. Se reinician solas a medianoche y no hay rachas que romper.</p>`;
+  if(openR===null)openR=curRoutine();
+  let h=header("Rutinas",["today","Hoy"]);
+  h+=`<p class="hint">Se reinician solas cada día. Sin rachas.</p>`;
   S.routines.forEach(r=>{
-    const l=(S.rlog[today()]||{})[r.id]||{}, d=rDone(r), n=r.items.length, mins=r.items.reduce((s,i)=>s+(+i.mins||0),0), ed=editR===r.id;
-    h+=`<section class="rcard" style="margin-top:14px"><div class="rhead"><div><h3>${esc(r.name)}</h3><div class="sub">${r.time?`Aviso ${r.time} · `:""}${n} pasos · ${mins} min · ${d}/${n}</div></div>
-    <button class="btn small line" data-act="redit" data-r="${r.id}">${ed?"Listo":"Editar"}</button></div>
-    ${n?`<div class="bar"><i style="width:${d/n*100}%"></i></div>`:""}`;
+    const l=(S.rlog[today()]||{})[r.id]||{}, d=rDone(r), n=r.items.length, mins=r.items.reduce((s,i)=>s+(+i.mins||0),0), ed=editR===r.id, open=ed||openR===r.id;
+    h+=`<section class="rcard" style="margin-top:14px"><div class="rhead"><div><h3>${esc(r.name)}</h3><div class="sub">${r.time?`${r.time} · `:""}${d} de ${n}</div></div>
+    ${open?`<button class="link" data-act="redit" data-r="${r.id}">${ed?"Listo":"Editar"}</button>`:`<button class="link" data-act="ropen" data-r="${r.id}">Ver</button>`}</div>`;
+    if(!open){h+=`</section>`;return}
     if(ed){
       h+=`<div class="inline"><input class="field" id="rn-${r.id}" data-rf="name" data-r="${r.id}" value="${esc(r.name)}" aria-label="Nombre de la rutina"><input class="field mini" type="time" data-rf="time" data-r="${r.id}" value="${r.time||""}" aria-label="Hora de aviso" style="width:120px"></div>`;
       h+=r.items.map(i=>`<div class="ritem"><span class="rt">${esc(i.text)}</span><span class="rm">${i.mins||0} min</span><button class="iconbtn" data-act="rdel" data-r="${r.id}" data-i="${i.id}" aria-label="Quitar paso">${I.x}</button></div>`).join("");
@@ -569,11 +569,11 @@ function viewRout(){
       <button class="btn small line" data-act="rremove" data-r="${r.id}" style="align-self:flex-start">Borrar esta rutina</button>`;
     } else {
       h+=r.items.map(i=>`<div class="ritem ${l[i.id]?"on":""}"><button class="cb" data-act="rcheck" data-r="${r.id}" data-i="${i.id}" aria-label="Marcar ${esc(i.text)}"><i>${I.check}</i></button><span class="rt">${esc(i.text)}</span><span class="rm">${i.mins?i.mins+" min":""}</span></div>`).join("");
-      if(n&&d<n)h+=`<button class="btn primary" data-act="rplay" data-r="${r.id}">${I.play}Empezar paso a paso</button>`;
+      if(n&&d<n)h+=`<button class="btn ghost" data-act="rplay" data-r="${r.id}">${I.play}Empezar</button>`;
     }
     h+=`</section>`;
   });
-  h+=`<button class="btn line" style="width:100%;margin-top:14px" data-act="rnew">Nueva rutina</button>`;
+  h+=`<p style="text-align:center"><button class="link" data-act="rnew">Nueva rutina</button></p>`;
   return h;
 }
 
@@ -600,10 +600,10 @@ let capWhen=null,capIdea=false,capArea=null;
 function openCapture(idea){
   capWhen=null;capIdea=!!idea;capArea=null;
   const hasMic=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
-  const d=sheet(`<h3>${capIdea?"Idea rápida":"¿Qué tienes en la cabeza?"}</h3>${capIdea?`<p class="hint" style="margin:-6px 0 0">Habla y suelta. La guardo en su proyecto para que la revises al llegar a casa.</p>`:""}
+  const d=sheet(`<h3>¿Qué tienes en la cabeza?</h3>
    <div class="cap ${capIdea?"idea":""}"><textarea id="capt" placeholder="${capIdea?"Ej: para Habi Scan, un reel enseñando el antes y después":"Ej: llamar al gestor mañana a las 10"}" aria-label="Escribe lo que quieras apuntar" enterkeyhint="done"></textarea>
    <div class="side">${hasMic?`<button id="micb" data-act="mic" aria-label="Dictar">${I.mic}</button>`:""}<button class="go" data-act="capsave" aria-label="Guardar">${I.send}</button></div></div>
-   <div class="parsed" id="parsed">${capIdea?(hasMic?"Toca el micro para hablar, o escribe.":"Escribe la idea. El dictado funciona en la app instalada."):"Se guarda en la bandeja. Si dices \"mañana\" o \"a las 5\", lo entiendo."}</div>
+   <div class="parsed" id="parsed">${hasMic?"Escribe o toca el micro. Consejo: mantén pulsado Apuntar para hablar directamente.":"Escribe o usa el dictado del teclado."}</div>
    <div class="chips" id="capchips"></div>`);
   const ta=$("#capt");
   ta.addEventListener("input",updParsed);
@@ -616,10 +616,11 @@ function updParsed(){
   if(capWhen==="dump"||capWhen==="chg")return;
   const ta=$("#capt");if(!ta)return;
   const p=parse(ta.value);
+  if(!ta.value.trim()){$("#capchips").innerHTML="";return}
   if(capIdea){
     const a=capArea!==null?capArea:p.area;
     if(ta.value.trim())$("#parsed").innerHTML=`<span class="pill mark">revisar en casa</span>${a?areaPill(a):'<span>Sin proyecto claro: elige uno o déjalo así</span>'}`;
-    $("#capchips").innerHTML=S.areas.map(x=>`<button class="chipbtn" data-act="caparea" data-a="${esc(x)}" aria-pressed="${a===x}">${esc(x)}</button>`).join("");
+    $("#capchips").innerHTML=`<button class="chipbtn" data-act="capidea" aria-pressed="true">Idea para revisar en casa</button><button class="chipbtn" data-act="capidea">Es una tarea</button>`;
     return;
   }
   const auto=p.date?(p.date===today()?"today":"date"):"inbox";
@@ -631,7 +632,7 @@ function updParsed(){
     if(p.area)s+=areaPill(p.area);
     $("#parsed").innerHTML=s;
   }
-  $("#capchips").innerHTML=[["inbox","Bandeja"],["today","Hoy"],["tomorrow","Mañana"],["someday","Algún día"]].map(([k,l])=>`<button class="chipbtn" data-act="capwhen" data-w="${k}" aria-pressed="${cur===k||(k==="tomorrow"&&cur==="date"&&p.date===addDays(today(),1))}">${l}</button>`).join("");
+  $("#capchips").innerHTML=[["inbox","Bandeja"],["today","Hoy"],["tomorrow","Mañana"],["idea","Idea"]].map(([k,l])=>`<button class="chipbtn" data-act="capwhen" data-w="${k}" aria-pressed="${cur===k||(k==="tomorrow"&&cur==="date"&&p.date===addDays(today(),1))}">${l}</button>`).join("");
 }
 function capSave(){
   const ta=$("#capt");if(!ta)return;
@@ -671,18 +672,25 @@ function openEdit(id){
   const k=byId(id);if(!k)return;
   const t=today(),tm=addDays(t,1);
   const whenNow=k.status==="inbox"?"inbox":k.status==="someday"?"someday":k.date===t?"today":k.date===tm?"tomorrow":"date";
-  sheet(`<h3>Editar</h3>
-  <div class="sec"><b>Tarea</b><input class="field" id="e-text" data-ef="text" value="${esc(k.text)}"></div>
-  <div class="sec"><b>Primer paso de 2 minutos</b><input class="field" id="e-step" data-ef="step" value="${esc(k.step)}" placeholder="Ej: abrir el documento"></div>
-  <div class="sec"><b>¿Cuándo?</b><div class="chips">${[["inbox","Bandeja"],["today","Hoy"],["tomorrow","Mañana"],["someday","Algún día"]].map(([w,l])=>`<button class="chipbtn" data-act="ewhen" data-w="${w}" data-id="${k.id}" aria-pressed="${whenNow===w}">${l}</button>`).join("")}
-    <input class="field" style="width:auto" type="date" id="e-date" data-ef="date" value="${k.date&&whenNow==="date"?k.date:""}" aria-label="Otra fecha"></div></div>
-  <div class="sec"><b>Aviso a una hora</b><div class="inline"><input class="field" type="time" id="e-time" data-ef="time" value="${k.time||""}" style="width:auto"><button class="btn small ghost" data-act="etimeclear" data-id="${k.id}">Sin aviso</button></div></div>
+  sheet(`<input class="field" id="e-text" data-ef="text" value="${esc(k.text)}" aria-label="Tarea" style="font-size:19px;font-weight:700">
+
+  ${k.review&&!k.done?`<button class="btn done" data-act="reviewed" data-id="${k.id}">${I.check} Idea revisada</button>`:""}
+  <div class="sec"><b>¿Cuándo?</b><div class="chips">${[["today","Hoy"],["tomorrow","Mañana"],["someday","Algún día"]].map(([w,l])=>`<button class="chipbtn" data-act="ewhen" data-w="${w}" data-id="${k.id}" aria-pressed="${whenNow===w}">${l}</button>`).join("")}</div></div>
+  <button class="chipbtn" data-act="star" data-id="${k.id}" aria-pressed="${k.important}" style="align-self:flex-start">${k.important?I.starF:I.star} ${k.important?"Importante":"Marcar como importante"}</button>
+  ${k.done?"":`<button class="btn ghost" data-act="start" data-id="${k.id}">${I.play}Empezar ahora</button>`}
+  <details><summary>Más opciones</summary>
+  <div class="sec"><b>Primer paso</b><input class="field" id="e-step" data-ef="step" value="${esc(k.step)}" placeholder="Lo más pequeño: abrir el documento"></div>
+  <div class="sec"><b>Otra fecha</b><input class="field" style="width:auto" type="date" id="e-date" data-ef="date" value="${k.date&&whenNow==="date"?k.date:""}"></div>
+  <div class="sec"><b>Avisarme a las</b><div class="inline"><input class="field" type="time" id="e-time" data-ef="time" value="${k.time||""}" style="width:auto">${k.time?`<button class="link" data-act="etimeclear" data-id="${k.id}">Quitar aviso</button>`:""}</div></div>
+  <div class="sec"><b>Proyecto</b><div class="chips">${S.areas.map(a=>`<button class="chipbtn" data-act="earea" data-a="${esc(a)}" data-id="${k.id}" aria-pressed="${k.area===a}">${esc(a)}</button>`).join("")}</div></div>
   <div class="sec"><b>Energía que pide</b><div class="chips">${["baja","media","alta"].map(e=>`<button class="chipbtn" data-act="eenergy" data-e="${e}" data-id="${k.id}" aria-pressed="${k.energy===e}">${e}</button>`).join("")}</div></div>
-  <div class="sec"><b>Tiempo estimado</b><div class="chips">${[5,15,30,60].map(m=>`<button class="chipbtn" data-act="emins" data-m="${m}" data-id="${k.id}" aria-pressed="${k.mins===m}">${m} min</button>`).join("")}</div></div>
-  <div class="sec"><b>Área</b><div class="chips">${S.areas.map(a=>`<button class="chipbtn" data-act="earea" data-a="${esc(a)}" data-id="${k.id}" aria-pressed="${k.area===a}">${esc(a)}</button>`).join("")}</div></div>
-  <div class="actions"><button class="btn ghost" data-act="del" data-id="${k.id}">Borrar</button><button class="btn done" data-act="close">Listo</button></div>`);
+  <button class="link" data-act="del" data-id="${k.id}" style="align-self:flex-start;color:var(--muted)">Borrar tarea</button>
+  </details>`);
   $("#scrim").dataset.id=id;
+  if(editMore){const dd=$("#scrim details");dd&&(dd.open=true)}
+  const dd=$("#scrim details");dd&&dd.addEventListener("toggle",()=>{editMore=dd.open});
 }
+let editMore=false;
 function whenPicker(id){
   const t=today();
   sheet(`<h3>¿Para cuándo?</h3><div class="chips">
@@ -703,13 +711,12 @@ function setWhen(k,w,d){
 /* Atascos: "Me he atascado" y sus ayudas */
 function openStuck(id,auto){
   const k=byId(id);if(!k)return;
-  sheet(`<h3>${auto?"Esta tarea se te resiste":"¿Qué te pasa con esta tarea?"}</h3>
-  <p class="hint" style="margin:-6px 0 0">${auto?`La has dejado para luego ${k.skips} veces. Es normal: casi siempre hay un motivo concreto.`:"Elige lo que más se parezca. Cada cosa tiene su ayuda."} <b>${esc(k.text)}</b></p>
+  sheet(`<h3>${auto?"Esta se te resiste":"¿Qué te frena?"}</h3>
+  ${auto?`<p class="hint" style="margin:-6px 0 0">La has dejado para luego ${k.skips} veces. Pasa mucho.</p>`:""}
   <div class="why">
-   <button data-act="stuck-why" data-why="start" data-id="${id}">No sé por dónde empezar<small>La partimos en pasitos y solo ves el primero</small></button>
-   <button data-act="stuck-why" data-why="big" data-id="${id}">Me agobia, es demasiado<small>Hacemos una versión fea y 5 minutos</small></button>
-   <button data-act="stuck-why" data-why="bored" data-id="${id}">Me aburre<small>Eliges un premio y vamos con 5 minutos</small></button>
-   <button data-act="stuck-why" data-why="missing" data-id="${id}">Me falta algo para hacerla<small>Apuntamos qué falta y la aparcamos</small></button>
+   <button data-act="five" data-id="${id}">Solo 5 minutos</button>
+   <button data-act="stuck-why" data-why="start" data-id="${id}">No sé por dónde empezar</button>
+   <button data-act="stuck-why" data-why="missing" data-id="${id}">Me falta algo</button>
   </div>
   ${auto?`<div class="actions"><button class="btn ghost" data-act="when" data-id="${id}">Otro día</button><button class="btn ghost" data-act="del" data-id="${id}">No hace falta, borrar</button></div>`:""}`);
 }
@@ -792,20 +799,22 @@ function dumpDay(){const h=new Date().getHours();return h<5?today():addDays(toda
 /* Ajustes */
 function openSettings(){
   const np=("Notification" in window)?Notification.permission:"unsupported";
-  sheet(`<h3>Ajustes</h3>
+  const pend=(S.changes||[]).filter(c=>!c.sent).length;
+  sheet(`<h3>Más</h3>
+  <button class="rowlink" data-act="gotab" data-tab="rout">Rutinas <small>mañana, cierre y noche</small></button>
+  <button class="rowlink" data-act="gotab" data-tab="chg">Cambios en la app <small>${pend?pend+" sin mandar":"pide mejoras a Claude"}</small></button>
+  ${np==="default"?'<button class="rowlink" data-act="perm">Activar avisos <small>para que te avise fuera de la app</small></button>':""}
+  <details><summary>Ajustes</summary>
   <div class="sec"><b>Avisos</b>
-   <p class="hint" style="margin:0">${np==="granted"?"Los avisos del sistema están activados.":np==="denied"?"El navegador tiene los avisos bloqueados. Actívalos en los ajustes del móvil.":np==="unsupported"?"Aquí no hay avisos del sistema; te aviso dentro de la app con sonido.":"Actívalos para que te avise aunque estés en otra app."}</p>
-   ${np==="default"?'<button class="btn ghost" data-act="perm">Activar avisos</button>':""}
+   <p class="hint" style="margin:0">${np==="granted"?"Avisos del sistema activados.":np==="denied"?"Los avisos están bloqueados en los ajustes del móvil.":np==="unsupported"?"Aquí te aviso dentro de la app con sonido.":"Aún no has activado los avisos del sistema."}</p>
    <div class="chips"><button class="chipbtn" data-act="sound" aria-pressed="${S.settings.sound}">Sonido ${S.settings.sound?"sí":"no"}</button>
-   ${[3,5,10].map(n=>`<button class="chipbtn" data-act="nag" data-n="${n}" aria-pressed="${S.settings.nag===n}">Insistir cada ${n} min</button>`).join("")}</div></div>
-  <div class="sec"><b>Ideas para revisar en casa</b><p class="hint" style="margin:0">A esta hora te aviso si tienes ideas pendientes.</p><input class="field" type="time" data-sf="home" value="${S.settings.home||""}" style="width:auto" aria-label="Hora de llegar a casa"></div>
-  <div class="sec"><b>Proyectos</b><div class="chips">${S.areas.map(a=>`<button class="chipbtn" data-act="adel" data-a="${esc(a)}" aria-label="Quitar ${esc(a)}">${esc(a)} ✕</button>`).join("")}</div>
-   <div class="inline"><input class="field" id="newarea" placeholder="Nueva área"><button class="btn small ghost" data-act="aadd">Añadir</button></div></div>
-  <div class="sec"><b>Copia de seguridad</b><p class="hint" style="margin:0">Tus datos viven solo en este móvil. Copia este texto y guárdalo en una nota si quieres tener respaldo.</p>
+   ${[5,10].map(n=>`<button class="chipbtn" data-act="nag" data-n="${n}" aria-pressed="${S.settings.nag===n}">Repetir cada ${n} min</button>`).join("")}</div></div>
+  <div class="sec"><b>Aviso de ideas al llegar a casa</b><input class="field" type="time" data-sf="home" value="${S.settings.home||""}" style="width:auto" aria-label="Hora de llegar a casa"></div>
+  <div class="sec"><b>Copia de seguridad</b><p class="hint" style="margin:0">Tus datos solo están en este móvil.</p>
    <div class="rrow"><button class="btn small ghost" data-act="bcopy">Copiar mis datos</button></div>
-   <textarea class="field" id="bpaste" rows="3" placeholder="Pega aquí una copia para restaurarla"></textarea>
-   <div class="rrow"><button class="btn small ghost" data-act="brestore">Restaurar copia</button><button class="btn small line" data-act="reset" id="resetb">Empezar de cero</button></div></div>
-  <button class="btn done" data-act="close">Cerrar</button>`);
+   <textarea class="field" id="bpaste" rows="2" placeholder="Pega aquí una copia para restaurarla"></textarea>
+   <div class="rrow"><button class="btn small ghost" data-act="brestore">Restaurar</button><button class="btn small line" data-act="reset" id="resetb">Empezar de cero</button></div></div>
+  </details>`);
 }
 
 /* Modo foco */
@@ -821,16 +830,16 @@ function drawFocus(){
   if(!k){f&&f.remove();return}
   if(!f){f=document.createElement("div");f.className="focus";f.id="focus";f.setAttribute("role","dialog");f.setAttribute("aria-label","Modo foco");layer.appendChild(f)}
   const T=S.timer, left=T?Math.max(0,T.end-Date.now()):0, ended=T&&left===0;
-  f.innerHTML=`<div class="in"><div class="ft"><span class="pill">Modo foco</span><button class="iconbtn" data-act="fclose" aria-label="Salir">${I.x}</button></div>
+  f.innerHTML=`<div class="in"><div class="ft"><span class="hint" style="margin:0">Solo esto</span><button class="iconbtn" data-act="fclose" aria-label="Salir">${I.x}</button></div>
   <h2>${esc(k.text)}</h2>
   ${(()=>{const cs=curStep(k);return cs?`<div class="stepbig"><b>${cs.i>=0?`Paso ${cs.i+1} de ${cs.n}`:"Empieza por aquí"}</b>${esc(cs.text)}${cs.i>=0?`<br><button class="s-edit" data-act="stepdone" data-id="${k.id}" style="margin-top:8px">${I.check} Paso hecho</button>`:""}</div>`:""})()}
   ${k.ugly?`<p class="hint" style="text-align:center;margin:0">Versión fea vale: <b>${esc(k.ugly)}</b></p>`:""}
   ${k.reward?`<p class="hint" style="text-align:center;margin:0">Premio al acabar: <b>${esc(k.reward)}</b></p>`:""}
-  <div class="ring" id="ring">${ringSVG(T?left/T.dur:0)}<div class="tm"><div><span id="tmv">${T?fmt(left):"25:00"}</span><small>${ended?"Tiempo":"Concéntrate solo en esto"}</small></div></div></div>
+  <div class="ring" id="ring">${ringSVG(T?left/T.dur:0)}<div class="tm"><div><span id="tmv">${T?fmt(left):"25:00"}</span><small>${ended?"Tiempo":""}</small></div></div></div>
   <div class="grow"></div>
   ${ended?`<p class="hint" style="text-align:center">Se acabó el bloque. Ya has empezado, eso cuenta. ¿Sigues?</p><div class="actions"><button class="btn done" data-act="fdone" style="grid-column:1/-1">${I.check} Lo he terminado</button><button class="btn ghost" data-act="fmore" data-m="25">Seguir 25 min</button><button class="btn ghost" data-act="fmore" data-m="5">Descanso 5 min</button><button class="btn line" data-act="fclose" style="grid-column:1/-1">Paro aquí, por hoy vale</button></div>`
-  :`<div class="chips" style="justify-content:center">${[10,25,45].map(m=>`<button class="chipbtn" data-act="fmore" data-m="${m}" aria-pressed="${T&&T.dur===m*60000}">${m} min</button>`).join("")}</div>
-  <div class="actions"><button class="btn done" data-act="fdone" style="grid-column:1/-1;min-height:60px">${I.check} Hecho</button><button class="btn ghost" data-act="fclose" style="grid-column:1/-1">Parar por ahora</button></div>`}</div>`;
+  :`<div class="actions"><button class="btn done" data-act="fdone" style="grid-column:1/-1;min-height:60px">${I.check} Hecho</button></div>
+  <button class="link" data-act="fclose">Parar por ahora</button>`}</div>`;
 }
 function ringSVG(p){const r=46,c=2*Math.PI*r;return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--soft)" stroke-width="7"/><circle id="arc" cx="50" cy="50" r="${r}" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p)}"/></svg>`}
 const fmt=ms=>{const s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+":"+pad(s%60)};
@@ -953,9 +962,10 @@ document.addEventListener("click",e=>{
   const r=b.dataset.r?S.routines.find(x=>x.id===b.dataset.r):null;
   switch(act){
     case"popen":openProj=b.dataset.a;pWhen="inbox";render();scrollTo(0,0);break;
+    case"pnew":newProjOpen=true;render();setTimeout(()=>{const i=$("#newproj");i&&i.focus()},20);break;
     case"pback":openProj=null;render();scrollTo(0,0);break;
     case"pmenu":projMenu(openProj);break;
-    case"padd":{const v=($("#newproj").value||"").trim();if(!v)break;if(!S.areas.includes(v)){S.areas.push(v);save()}openProj=v;render();break}
+    case"padd":{const v=($("#newproj").value||"").trim();if(!v)break;if(!S.areas.includes(v)){S.areas.push(v);save()}openProj=v;newProjOpen=false;render();break}
     case"ptwhen":pWhen=b.dataset.w;render();setTimeout(()=>{const i=$("#ptask");i&&i.focus()},20);break;
     case"ptadd":{const v=($("#ptask").value||"").trim();if(!v){$("#ptask").focus();break}const p=parse(v);
       const k2={id:uid(),text:v,step:"",mins:0,energy:"",status:"inbox",date:"",time:"",important:false,area:b.dataset.a,done:false,doneAt:0,order:Date.now(),created:Date.now()};
@@ -972,14 +982,16 @@ document.addEventListener("click",e=>{
     case"reviewed":if(!k)break;k.review=false;k.done=true;k.doneAt=Date.now();save();render();toast("Idea revisada",()=>{k.review=true;k.done=false;k.doneAt=0;save();render()});break;
     case"al-ideas":answer();tab="inbox";render();scrollTo(0,0);break;
     case"capsave":capSave();break;
-    case"capwhen":capWhen=b.dataset.w;updParsed();$("#capt").focus();break;
+    case"capwhen":if(b.dataset.w==="idea"){capIdea=true;capWhen=null}else capWhen=b.dataset.w;updParsed();$("#capt").focus();break;
+    case"capidea":capIdea=!capIdea;updParsed();$("#capt").focus();break;
     case"mic":mic();break;
     case"close":closeSheet();break;
     case"settings":openSettings();break;
+    case"gotab":tab=b.dataset.tab;closeSheet();scrollTo(0,0);break;
     case"toggle":if(!k)break;if(k.done){k.done=false;k.doneAt=0;save()}else complete(k,e);render();break;
-    case"start":if(!k)break;startFocus(k.id,k.mins&&k.mins<=45?k.mins:25);break;
+    case"start":if(!k)break;if($("#scrim"))closeSheet();startFocus(k.id,k.mins&&k.mins<=45?k.mins:25);break;
     case"notnow":if(!k)break;k.order=Date.now();k.skips=(k.skips||0)+1;save();render();if(k.skips>=3&&k.skips%3===0)openStuck(k.id,true);else toast("Vale, luego vuelve");break;
-    case"five":if(!k)break;S.timer=null;startFocus(k.id,5);break;
+    case"five":if(!k)break;if($("#scrim"))closeSheet();S.timer=null;startFocus(k.id,5);break;
     case"stuck":if(k)openStuck(k.id);break;
     case"stuck-why":if(!k)break;{const w=b.dataset.why;w==="start"?openSteps(k.id):w==="big"?openBig(k.id):w==="bored"?openBored(k.id):openMissing(k.id)}break;
     case"stepadd":{if(!k)break;const inp=$("#newstep");const t=(b.dataset.t||(inp&&inp.value)||"").trim();if(!t)break;k.steps=k.steps||[];k.steps.push({t,done:false});save();openSteps(k.id);break}
@@ -1008,7 +1020,7 @@ document.addEventListener("click",e=>{
       save();dumpItems=[];capWhen=null;closeSheet();celebrate(innerWidth/2,innerHeight/2);toast(`${n} tarea${n===1?"":"s"} lista${n===1?"":"s"} para ${day===today()?"hoy":"mañana"}. A descansar.`);break}
     case"star":if(!k)break;
       if(!k.important&&importants().length>=3){toast("Ya tienes 3 importantes. Quita una antes.");break}
-      k.important=!k.important;if(k.status!=="today"){k.status="today";k.date=today()}save();render();break;
+      k.important=!k.important;if(k.important&&k.status!=="today"){setWhen(k,"today");k.important=true}save();if($("#scrim"))openEdit(k.id);else render();break;
     case"edit":if(k)openEdit(k.id);break;
     case"when":if(k)whenPicker(k.id);break;
     case"move":if(!k)break;setWhen(k,b.dataset.to);save();closeSheet();render();toast(b.dataset.to==="today"?"Movido a hoy":"Guardado para algún día");break;
@@ -1032,6 +1044,7 @@ document.addEventListener("click",e=>{
     case"rskipstep":{const l=(S.rlog[today()]||{})[r.id]||{};const rest=r.items.filter(x=>!l[x.id]);const i=rest.findIndex(x=>x.id===b.dataset.i);if(i>=0&&rest.length>1){const [it]=r.items.splice(r.items.indexOf(rest[i]),1);r.items.push(it);save()}rp=null;playRoutine(r.id);break}
     case"rclose":closePlay();render();break;
     case"rskip":if(r){S.notified["skip"+r.id+today()]=1;answerRoutine(r);render();toast("Vale, hoy no")}break;
+    case"ropen":openR=r.id;editR=null;render();break;
     case"redit":editR=editR===r.id?null:r.id;render();break;
     case"radd":{const ti=$("#ri-"+r.id),mi=$("#rm-"+r.id);if(ti.value.trim()){r.items.push({id:uid(),text:ti.value.trim(),mins:+mi.value||0});save();render();$("#ri-"+r.id)&&$("#ri-"+r.id).focus()}break}
     case"rdel":r.items=r.items.filter(x=>x.id!==b.dataset.i);save();render();break;
@@ -1045,8 +1058,8 @@ document.addEventListener("click",e=>{
     case"alr-go":{const id2=alertQ&&alertQ.id;answer();playRoutine(id2);break}
     /* ajustes */
     case"perm":try{Notification.requestPermission().then(()=>openSettings())}catch(e){toast("Este navegador no deja activar avisos")}break;
-    case"sound":S.settings.sound=!S.settings.sound;save();if(S.settings.sound)beep();openSettings();break;
-    case"nag":S.settings.nag=+b.dataset.n;save();openSettings();break;
+    case"sound":S.settings.sound=!S.settings.sound;save();if(S.settings.sound)beep();openSettings();$("#scrim details").open=true;break;
+    case"nag":S.settings.nag=+b.dataset.n;save();openSettings();$("#scrim details").open=true;break;
     case"adel":S.areas=S.areas.filter(a=>a!==b.dataset.a);save();openSettings();break;
     case"aadd":{const v=$("#newarea").value.trim();if(v&&!S.areas.includes(v)){S.areas.push(v);save()}openSettings();break}
     case"bcopy":{const data=JSON.stringify(S);const ok=()=>toast("Copiado. Pégalo en una nota.");try{navigator.clipboard.writeText(data).then(ok,()=>fallbackCopy(data))}catch(e){fallbackCopy(data)}break}
@@ -1078,6 +1091,13 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){rollover();if(!$("#scrim")&&!$("#focus"))render();checkReminders()}});
 
+/* Mantener pulsado Apuntar: abre directamente el micro */
+(function(){const f=$("#fab");let t=null,long=false;
+  f.addEventListener("pointerdown",()=>{long=false;t=setTimeout(()=>{long=true;ensureAudio();openCapture();setTimeout(()=>{if($("#micb"))mic()},120)},450)});
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>f.addEventListener(ev,()=>clearTimeout(t)));
+  f.addEventListener("click",e=>{if(long){e.stopImmediatePropagation();e.preventDefault();long=false}},true);
+  f.addEventListener("contextmenu",e=>e.preventDefault());
+})();
 /* ---------- arranque ---------- */
 load();render();
 if(S.timer&&byId(S.timer.id)&&!S.timer.ended){focusId=S.timer.id;drawFocus()}
