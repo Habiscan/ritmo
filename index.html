@@ -270,7 +270,7 @@ function seed(){
       T("Grabar el Short de esta semana",{important:true,step:"Poner el móvil en el trípode",mins:30,energy:"alta",area:"PAÍS x PAÍS"}),
       T("Revisar el calendario de Reels",{time:"17:00",step:"Abrir Metricool",mins:15,energy:"media",area:"Habi Scan"}),
       T("Comprar pilas",{energy:"baja"}),
-      T("Idea: un nivel nuevo con lluvia para Buen Camino",{status:"inbox",date:"",area:"Buen Camino"}),
+      T("Idea: un nivel nuevo con lluvia para Buen Camino",{status:"inbox",date:"",area:"Juego del peregrino"}),
       T("Pedir cita en el médico",{status:"inbox",date:""}),
       T("Reel enseñando un antes y después",{status:"inbox",date:"",review:true,area:"Habi Scan"}),
       T("Comparar precio del alquiler en Madrid y Bogotá",{status:"inbox",date:"",review:true,area:"PAÍS x PAÍS"}),
@@ -286,12 +286,13 @@ function seed(){
     kw:defaultKw(), rlog:{}, notified:{}, settings:{sound:true,nag:5,home:"20:00"}, energy:"", timer:null, lastDay:t
   };
 }
-const DEFAULT_AREAS=["Habi Scan","Habi Cars","PAÍS x PAÍS","Buen Camino","Agencia","Ritmo","Personal"];
-function defaultKw(){return {"Habi Cars":["habicars","habi cars","coche","coches"],"Ritmo":["ritmo","app de organización","app de organizacion","la app"],"Habi Scan":["habi","habiscan","reel","reels","instagram","metricool","carrusel"],"PAÍS x PAÍS":["pais x pais","país x país","short","shorts","tiktok","youtube","comparativa"],"Buen Camino":["buen camino","ultreia","juego","videojuego","nivel","sprite","tile"],"Agencia":["agencia","cliente","branding","web","logo"],"Personal":["casa","médico","medico","banco","comprar"]}}
+const DEFAULT_AREAS=["Habi Scan","Habi Cars","PAÍS x PAÍS","Juego del peregrino","Agencia","Ritmo","Personal"];
+function defaultKw(){return {"Habi Cars":["habicars","habi cars","coche","coches"],"Ritmo":["ritmo","app de organización","app de organizacion","la app"],"Habi Scan":["habi","habiscan","reel","reels","instagram","metricool","carrusel"],"PAÍS x PAÍS":["pais x pais","país x país","short","shorts","tiktok","youtube","comparativa"],"Juego del peregrino":["buen camino","peregrino","peregrinos","camino de santiago","ultreia","suseia","juego","videojuego","nivel","sprite","tile"],"Agencia":["agencia","cliente","branding","web","logo"],"Personal":["casa","médico","medico","banco","comprar"]}}
 function load(){
   try{S=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){S=null}
   if(!S||!S.v) S=seed();
   if(!S.kw)S.kw=defaultKw(); if(!S.wins)S.wins={};
+  if(!S.pereMig){const o="Buen Camino",n="Juego del peregrino";const i=S.areas.indexOf(o);if(i>=0&&!S.areas.includes(n))S.areas[i]=n;S.tasks.forEach(k=>{if(k.area===o)k.area=n});const dk=defaultKw();S.kw[n]=Array.from(new Set([...(S.kw[o]||[]),...dk[n]]));delete S.kw[o];S.pereMig=1}
   if(!S.projMig){DEFAULT_AREAS.forEach(a=>{if(!S.areas.includes(a))S.areas.push(a)});const dk=defaultKw();Object.keys(dk).forEach(a=>{if(!S.kw[a])S.kw[a]=dk[a]});S.projMig=1}
   if(!S.dumpMig){const n=S.routines.find(r=>/noche/i.test(r.name));if(n&&!n.items.some(i=>i.act==="dump"))n.items.unshift({id:uid(),text:"Dictar todo lo que tengo que hacer mañana",mins:3,act:"dump"});S.dumpMig=1} if(!S.settings.home||(S.settings.home==="19:30"&&!S.settings.homeSet))S.settings.home="20:00";
   rollover();
