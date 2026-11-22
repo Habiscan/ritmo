@@ -430,8 +430,9 @@ function nextTask(){
 }
 function curStep(k){const st=(k.steps||[]);const i=st.findIndex(x=>!x.done);if(i>=0)return {text:st[i].t,i,n:st.length};return k.step?{text:k.step,i:-1,n:0}:null}
 const winsToday=()=>(S.wins||{})[today()]||0;
+const claudeHint=()=>S.claudeAt&&Date.now()-S.claudeAt<3*3600e3?`<button class="rowlink" data-act="imp" style="margin:4px 0 8px">¿Claude te ha dado tareas? <small>pégalas aquí</small></button>`:"";
 function viewNow(){
-  let h=header(greet());
+  let h=header(greet())+claudeHint();
   const r=routineDue();
   const k=nextTask();
   if(r){
@@ -503,6 +504,7 @@ function viewToday(){
   if(selDay&&selDay!==today())return viewDay(selDay);
   let h=header("Hoy");
   h+=dayStrip();
+  h+=claudeHint();
   h+=exBanner();
   const imp=importants(), rest=todays().filter(k=>!k.important);
   h+=`<div class="label">Lo importante</div>`;
@@ -862,7 +864,7 @@ function claudePrompt(order){
   const k=claudeFor&&byId(claudeFor);
   let t="Te escribo desde Ritmo, mi app de tareas.\n";
   if(k){t+=`\nTarea: ${k.text}`;if(k.area)t+=`\nProyecto: ${k.area}`;if(k.date)t+=`\nPara: ${niceDate(k.date).toLowerCase()}${k.time?" a las "+k.time:""}`;const cs=curStep(k);if(cs)t+=`\nPrimer paso: ${cs.text}`;t+="\n";}
-  t+=`\nLo que te pido: ${order.trim()}\n\nUsa mis conectores si hace falta. Antes de enviar o publicar nada en mi nombre, enséñamelo. Al final dime qué has hecho y qué me toca a mí.`;
+  t+=`\nLo que te pido: ${order.trim()}\n\nUsa mis conectores si hace falta. Antes de enviar o publicar nada en mi nombre, enséñamelo. Al final dime qué has hecho y qué me toca a mí.\n\nIMPORTANTE: tú no puedes escribir en Ritmo, así que no digas que has añadido o subido tareas. Si hay que apuntarme tareas, ponlas al final en un bloque de código que empiece por la línea RITMO, una tarea por línea así:\ntexto | AAAA-MM-DD | HH:MM | proyecto\n(deja vacío lo que no sepas; hoy es ${today()}; proyectos: ${S.areas.join(", ")}). Yo copio el bloque y lo pego en Ritmo.`;
   return t;
 }
 function openClaude(id){
@@ -887,6 +889,7 @@ function openSettings(){
   const pend=(S.changes||[]).filter(c=>!c.sent).length;
   sheet(`<h3>Más</h3>
   <button class="rowlink" data-act="claude">Pedir algo a Claude <small>por voz</small></button>
+  <button class="rowlink" data-act="imp">Pegar tareas de Claude <small>lo que te ha dado en el bloque RITMO</small></button>
   <button class="rowlink" data-act="gotab" data-tab="rout">Rutinas <small>mañana, cierre y noche</small></button>
   <button class="rowlink" data-act="gotab" data-tab="chg">Cambios en la app <small>${pend?pend+" sin mandar":"pide mejoras a Claude"}</small></button>
   ${np==="default"?'<button class="rowlink" data-act="perm">Activar avisos <small>para que te avise fuera de la app</small></button>':""}
@@ -1079,7 +1082,10 @@ document.addEventListener("click",e=>{
     case"mday":selDay=b.dataset.d===today()?null:b.dataset.d;closeSheet();scrollTo(0,0);break;
     case"addday":openCapture(false,b.dataset.d);break;
     case"claude":openClaude(id);break;
-    case"claudego":{const ta=$("#capt");if(!ta||!ta.value.trim()){e.preventDefault();toast("Primero di o escribe qué quieres");ta&&ta.focus();break}if(rec){try{rec.stop()}catch(x){}}b.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));setTimeout(closeSheet,400);break}
+    case"claudego":{const ta=$("#capt");if(!ta||!ta.value.trim()){e.preventDefault();toast("Primero di o escribe qué quieres");ta&&ta.focus();break}if(rec){try{rec.stop()}catch(x){}}b.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));S.claudeAt=Date.now();save();setTimeout(()=>{closeSheet();render()},400);break}
+    case"imp":openImport("");break;
+    case"imppaste":{const ta=$("#impt");if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(x=>{if(ta){ta.value=x;updImport()}}).catch(()=>{toast("Mantén pulsado el cuadro y elige Pegar");ta&&ta.focus()})}else{toast("Mantén pulsado el cuadro y elige Pegar");ta&&ta.focus()}break}
+    case"impgo":{const it=parseImport(($("#impt")||{}).value||"");if(!it.length){toast("No veo tareas ahí");break}const t=today();it.forEach((f,i)=>{let dd=f.date,st="inbox";if(dd){if(dd<t)dd=t;st=dd===t?"today":"later"}S.tasks.push({id:uid(),text:f.text,step:"",mins:0,energy:"",status:st,date:dd,time:f.time,important:false,area:f.area,done:false,doneAt:0,order:Date.now()+i,created:Date.now(),fromClaude:true})});S.claudeAt=0;save();closeSheet();render();toast(it.length===1?"1 tarea añadida":it.length+" tareas añadidas");break}
     case"claudecopy":{const ta=$("#capt");const txt=claudePrompt(ta?ta.value:"");try{navigator.clipboard.writeText(txt).then(()=>toast("Copiado. Pégalo en Claude."),()=>toast("No he podido copiar"))}catch(x){toast("No he podido copiar")}break}
     case"gotab":tab=b.dataset.tab;closeSheet();scrollTo(0,0);break;
     case"toggle":if(!k)break;if(k.done){k.done=false;k.doneAt=0;save()}else complete(k,e);render();break;
@@ -1231,8 +1237,43 @@ async function feedStart(){
     db.collection("feed").onSnapshot(s=>{try{feedApply(s.docs)}catch(e){}feedReport()},()=>{});
     setInterval(feedReport,20000)}catch(e){}
 }
+/* Tareas que devuelve Claude: bloque RITMO pegado o enlace #tareas= */
+const normA=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+function impDate(v){v=v.trim().toLowerCase();if(okDate(v))return v;const t=today();if(v==="hoy")return t;if(v==="mañana"||v==="manana")return addDays(t,1);if(/pasado/.test(v))return addDays(t,2);const m=v.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?$/);if(m){let y=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):+t.slice(0,4);const d=`${y}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;if(okDate(d))return(!m[3]&&d<t)?`${y+1}${d.slice(4)}`:d}return""}
+function parseImport(raw){
+  let s=String(raw||"");if(/%[0-9a-f]{2}/i.test(s)){try{s=decodeURIComponent(s.replace(/\+/g," "))}catch(e){}}
+  let lines=s.split(/\r?\n/).map(l=>l.trim());
+  const ri=lines.findIndex(l=>/^(```\s*)?ritmo:?$/i.test(l));
+  if(ri>=0){lines=lines.slice(ri+1);const e=lines.findIndex(l=>/^```/.test(l));if(e>=0)lines=lines.slice(0,e)}
+  lines=lines.filter(l=>l&&!/^```/.test(l));
+  if(ri<0){const piped=lines.filter(l=>l.includes("|"));if(piped.length)lines=piped}
+  const out=[];
+  lines.forEach(l=>{const ps=l.split("|").map(x=>x.trim());let text=(ps.shift()||"").replace(/^([-*•]|\d+[.)])\s*/,"").replace(/\*\*/g,"").trim();
+    if(!text||/^texto$/i.test(text)||/^-+$/.test(text))return;let date="",time="",area="";
+    ps.forEach(x=>{if(!x)return;const tm=x.match(/^(\d{1,2})[:.h](\d{2})$/);if(!time&&tm&&+tm[1]<24){time=String(tm[1]).padStart(2,"0")+":"+tm[2];return}
+      if(!date){const d=impDate(x);if(d){date=d;return}}if(!area){const a=S.areas.find(z=>normA(z)===normA(x))||S.areas.find(z=>normA(x)&&(normA(z).includes(normA(x))||normA(x).includes(normA(z))));if(a)area=a}});
+    out.push({text:text.slice(0,200),date,time,area})});
+  return out.slice(0,30);
+}
+function updImport(){const ta=$("#impt"),box=$("#impl"),go=$("#impgo");if(!ta||!box)return;const it=parseImport(ta.value);
+  box.innerHTML=it.length?`<ul class="list">${it.map(f=>`<li class="task"><span style="width:12px;flex:none"></span><div class="tb"><span class="tt">${esc(f.text)}</span><span class="meta">${[f.date?niceDate(f.date):"Bandeja",f.time,f.area].filter(Boolean).map(esc).join(" · ")}</span></div></li>`).join("")}</ul>`:"";
+  if(go){go.disabled=!it.length;go.textContent=it.length?(it.length===1?"Añadir 1 tarea":`Añadir ${it.length} tareas`):"Añadir"}}
+function openImport(raw){
+  sheet(`<h3>Tareas de Claude</h3>
+  <p class="hint" style="margin:-6px 0 0">Copia el bloque RITMO que te ha dado Claude y pégalo aquí.</p>
+  <textarea class="field" id="impt" rows="4" placeholder="RITMO&#10;Llamar al albergue | 2026-11-23 | 11:00 | Habi Cars"></textarea>
+  <div class="rrow"><button class="btn small ghost" data-act="imppaste">Pegar</button></div>
+  <div id="impl"></div>
+  <button class="btn primary" id="impgo" data-act="impgo" disabled>Añadir</button>`);
+  const ta=$("#impt");ta.value=raw||"";ta.addEventListener("input",updImport);updImport();
+}
+function checkLinkImport(){
+  const h=location.hash||"",q=location.search||"";let m=h.match(/^#tareas=([\s\S]*)$/)||q.match(/[?&]tareas=([^&]*)/);
+  if(!m)return;try{history.replaceState(null,"",location.pathname)}catch(e){}openImport(m[1]);
+}
+window.addEventListener("hashchange",checkLinkImport);
 /* ---------- arranque ---------- */
-load();render();feedStart();
+load();render();feedStart();setTimeout(checkLinkImport,50);
 if(S.timer&&byId(S.timer.id)&&!S.timer.ended){focusId=S.timer.id;drawFocus()}
 setInterval(()=>{tickFocus();tickRoutine()},1000);
 setInterval(checkReminders,15000);setTimeout(checkReminders,1500);
