@@ -1231,11 +1231,17 @@ async function feedReport(){
     else if(!k){await feedDb.doc("feed/"+id).update({dismissed:true});rec.rep=1;save()}}}catch(e){}
   feedBusy=false;
 }
+function feedWarn(m){window.__ritmoFeed=m;try{console.warn("[Ritmo] "+m)}catch(e){}setTimeout(()=>toast(m),1500)}
 async function feedStart(){
-  for(let i=0;i<20&&!(window.claude&&window.claude.use);i++)await new Promise(r=>setTimeout(r,500));
-  try{if(!(window.claude&&window.claude.use))return;const db=await window.claude.use("db");if(!db)return;feedDb=db;
-    db.collection("feed").onSnapshot(s=>{try{feedApply(s.docs)}catch(e){}feedReport()},()=>{});
-    setInterval(feedReport,20000)}catch(e){}
+  for(let i=0;i<24&&!(window.claude&&window.claude.use);i++)await new Promise(r=>setTimeout(r,500));
+  /* Fuera de claude.ai (la app instalada) no hay feed: se usa el bloque RITMO, sin avisos */
+  if(!(window.claude&&window.claude.use)){window.__ritmoFeed="sin claude.ai";return}
+  let db=null;try{db=await window.claude.use("db")}catch(e){}
+  if(!db)return feedWarn("Tareas de Claude: no se ha podido conectar (inicia sesión en claude.ai)");
+  feedDb=db;
+  try{const s=await db.collection("feed").get();feedApply(s.docs);feedReport()}catch(e){feedWarn("Tareas de Claude: error al leerlas ("+((e&&e.code)||"desconocido")+")")}
+  try{db.collection("feed").onSnapshot(s=>{try{feedApply(s.docs)}catch(e){feedWarn("Tareas de Claude: error al importarlas")}feedReport()},e=>feedWarn("Tareas de Claude: conexión cortada ("+((e&&e.code)||"")+")"))}catch(e){}
+  setInterval(feedReport,20000);
 }
 /* Tareas que devuelve Claude: bloque RITMO pegado o enlace #tareas= */
 const normA=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
