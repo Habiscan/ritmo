@@ -593,7 +593,7 @@ function sheet(html,onClose){
   d._onClose=onClose;layer.appendChild(d);
   return d;
 }
-function closeSheet(){const d=$("#scrim");if(d){if(capWhen==="dump"){capWhen=null;if(rec){try{rec.stop()}catch(e){}}}d.remove();d._onClose&&d._onClose();render()}}
+function closeSheet(){const d=$("#scrim");if(d){if(capWhen==="claude"){capWhen=null;if(rec){try{rec.stop()}catch(e){}}}if(capWhen==="dump"){capWhen=null;if(rec){try{rec.stop()}catch(e){}}}d.remove();d._onClose&&d._onClose();render()}}
 
 /* Captura */
 let capWhen=null,capIdea=false,capArea=null;
@@ -613,6 +613,7 @@ function openCapture(idea){
   if(capIdea&&hasMic)setTimeout(mic,150);
 }
 function updParsed(){
+  if(capWhen==="claude"){const a=$("#claudego"),ta=$("#capt");if(a&&ta)a.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));return}
   if(capWhen==="dump"||capWhen==="chg")return;
   const ta=$("#capt");if(!ta)return;
   const p=parse(ta.value);
@@ -677,7 +678,7 @@ function openEdit(id){
   ${k.review&&!k.done?`<button class="btn done" data-act="reviewed" data-id="${k.id}">${I.check} Idea revisada</button>`:""}
   <div class="sec"><b>¿Cuándo?</b><div class="chips">${[["today","Hoy"],["tomorrow","Mañana"],["someday","Algún día"]].map(([w,l])=>`<button class="chipbtn" data-act="ewhen" data-w="${w}" data-id="${k.id}" aria-pressed="${whenNow===w}">${l}</button>`).join("")}</div></div>
   <button class="chipbtn" data-act="star" data-id="${k.id}" aria-pressed="${k.important}" style="align-self:flex-start">${k.important?I.starF:I.star} ${k.important?"Importante":"Marcar como importante"}</button>
-  ${k.done?"":`<button class="btn ghost" data-act="start" data-id="${k.id}">${I.play}Empezar ahora</button>`}
+  ${k.done?"":`<div class="duo"><button class="btn ghost" data-act="start" data-id="${k.id}">${I.play}Empezar</button><button class="btn ghost" data-act="claude" data-id="${k.id}">Pedir a Claude</button></div>`}
   <details><summary>Más opciones</summary>
   <div class="sec"><b>Primer paso</b><input class="field" id="e-step" data-ef="step" value="${esc(k.step)}" placeholder="Lo más pequeño: abrir el documento"></div>
   <div class="sec"><b>Otra fecha</b><input class="field" style="width:auto" type="date" id="e-date" data-ef="date" value="${k.date&&whenNow==="date"?k.date:""}"></div>
@@ -796,11 +797,37 @@ function drawDump(){
 }
 function dumpDay(){const h=new Date().getHours();return h<5?today():addDays(today(),1)}
 
+/* Pedir a Claude: dictar una orden y abrir Claude con ella escrita y el contexto de la tarea */
+let claudeFor=null;
+function claudePrompt(order){
+  const k=claudeFor&&byId(claudeFor);
+  let t="Te escribo desde Ritmo, mi app de tareas.\n";
+  if(k){t+=`\nTarea: ${k.text}`;if(k.area)t+=`\nProyecto: ${k.area}`;if(k.date)t+=`\nPara: ${niceDate(k.date).toLowerCase()}${k.time?" a las "+k.time:""}`;const cs=curStep(k);if(cs)t+=`\nPrimer paso: ${cs.text}`;t+="\n";}
+  t+=`\nLo que te pido: ${order.trim()}\n\nUsa mis conectores si hace falta. Antes de enviar o publicar nada en mi nombre, enséñamelo. Al final dime qué has hecho y qué me toca a mí.`;
+  return t;
+}
+function openClaude(id){
+  claudeFor=id||null;const k=id&&byId(id);
+  const hasMic=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  sheet(`<h3>Pedir a Claude</h3>
+  ${k?`<p class="hint" style="margin:-6px 0 0">Sobre: <b>${esc(k.text)}</b></p>`:""}
+  <div class="cap"><textarea id="capt" style="height:120px" placeholder="Ej: mira la conversación con el albergue en redes y agenda la llamada de mañana para llevar los carteles"></textarea>
+  <div class="side">${hasMic?`<button id="micb" data-act="mic" aria-label="Dictar">${I.mic}</button>`:""}</div></div>
+  <a class="btn primary" id="claudego" href="#" target="_blank" rel="noopener" data-act="claudego" style="text-decoration:none">Abrir en Claude</a>
+  <button class="link" data-act="claudecopy">Copiar el texto</button>`);
+  capWhen="claude";capIdea=false;
+  const ta=$("#capt"),upd=()=>{$("#claudego").href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value))};
+  ta.addEventListener("input",upd);upd();
+  setTimeout(()=>ta.focus(),60);
+  if(hasMic)setTimeout(mic,150);
+}
+
 /* Ajustes */
 function openSettings(){
   const np=("Notification" in window)?Notification.permission:"unsupported";
   const pend=(S.changes||[]).filter(c=>!c.sent).length;
   sheet(`<h3>Más</h3>
+  <button class="rowlink" data-act="claude">Pedir algo a Claude <small>por voz</small></button>
   <button class="rowlink" data-act="gotab" data-tab="rout">Rutinas <small>mañana, cierre y noche</small></button>
   <button class="rowlink" data-act="gotab" data-tab="chg">Cambios en la app <small>${pend?pend+" sin mandar":"pide mejoras a Claude"}</small></button>
   ${np==="default"?'<button class="rowlink" data-act="perm">Activar avisos <small>para que te avise fuera de la app</small></button>':""}
@@ -987,6 +1014,9 @@ document.addEventListener("click",e=>{
     case"mic":mic();break;
     case"close":closeSheet();break;
     case"settings":openSettings();break;
+    case"claude":openClaude(id);break;
+    case"claudego":{const ta=$("#capt");if(!ta||!ta.value.trim()){e.preventDefault();toast("Primero di o escribe qué quieres");ta&&ta.focus();break}if(rec){try{rec.stop()}catch(x){}}b.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));setTimeout(closeSheet,400);break}
+    case"claudecopy":{const ta=$("#capt");const txt=claudePrompt(ta?ta.value:"");try{navigator.clipboard.writeText(txt).then(()=>toast("Copiado. Pégalo en Claude."),()=>toast("No he podido copiar"))}catch(x){toast("No he podido copiar")}break}
     case"gotab":tab=b.dataset.tab;closeSheet();scrollTo(0,0);break;
     case"toggle":if(!k)break;if(k.done){k.done=false;k.doneAt=0;save()}else complete(k,e);render();break;
     case"start":if(!k)break;if($("#scrim"))closeSheet();startFocus(k.id,k.mins&&k.mins<=45?k.mins:25);break;
