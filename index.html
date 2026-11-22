@@ -225,6 +225,24 @@ details.donebox summary::-webkit-details-marker{display:none}
 .rowlink{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;border-radius:14px;background:var(--soft);font-weight:700;text-align:left}
 .rowlink small{font-weight:400;color:var(--muted)}
 .back{display:flex;align-items:center;gap:4px;color:var(--muted);font-weight:700;padding:6px 0}
+.days{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;margin-top:4px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.dayb{flex:none;width:50px;padding:8px 0 7px;border-radius:14px;background:var(--surface);display:flex;flex-direction:column;align-items:center;gap:1px}
+.dayb small{font-size:12px;color:var(--muted);text-transform:capitalize}
+.dayb b{font-size:19px;font-family:var(--f-display);font-variant-numeric:tabular-nums}
+.dayb i{height:6px;display:flex;gap:3px}.dayb i em{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.7}
+.dayb[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.dayb[aria-pressed="true"] small{color:inherit;opacity:.85}.dayb[aria-pressed="true"] i em{background:var(--accent-ink)}
+.dayb.mes{width:auto;padding:0 14px;justify-content:center;color:var(--accent);font-weight:700}
+.month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.month .wd{font-size:12px;color:var(--muted);padding:4px 0}
+.month button{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-variant-numeric:tabular-nums;font-weight:700;max-width:100%}
+.month button:disabled{color:var(--muted);opacity:.45;font-weight:400}
+.month button.today{outline:2px solid var(--accent);outline-offset:-2px}
+.month button i{display:block;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.month button i.no{background:transparent}
+.mhead{display:flex;justify-content:space-between;align-items:center}
+.mhead h3{font-size:20px}
 </style>
 
 </head>
@@ -373,13 +391,13 @@ let o_noReview=false;
 function meta(k){
   const bits=[];
   if(k.time)bits.push(k.time);
-  if(k.status==="later"&&k.date)bits.push(niceDate(k.date));
+  if(k.status==="later"&&k.date&&!o_hideDate)bits.push(niceDate(k.date));
   if(k.status==="someday")bits.push("Algún día");
   if(o_showArea&&k.area)bits.push(k.area);
   if(k.ex)bits.push("ejemplo");
   return bits.length?`<span class="when">${esc(bits.join(" · "))}</span>`:"";
 }
-let o_showArea=false;
+let o_showArea=false,o_hideDate=false;
 function niceDate(d){
   const t=today();if(d===t)return"Hoy";if(d===addDays(t,1))return"Mañana";if(d===addDays(t,2))return"Pasado mañana";
   return new Date(d+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
@@ -443,9 +461,48 @@ function viewNow(){
   return h;
 }
 
+/* Calendario: tira de días en Hoy y vista de mes */
+let selDay=null;
+const dayTasks=d=>S.tasks.filter(k=>k.date===d&&(k.status==="today"||k.status==="later"));
+function dayStrip(){
+  const t=today();const sd=selDay||t;let h='<div class="days" role="tablist" aria-label="Próximos días"><button class="dayb mes" data-act="month">Mes</button>';
+  for(let i=0;i<14;i++){const d=addDays(t,i),dt=new Date(d+"T12:00:00"),n=dayTasks(d).filter(k=>!k.done).length;
+    h+=`<button class="dayb" data-act="selday" data-d="${d}" aria-pressed="${sd===d}" aria-label="${esc(niceDate(d))}, ${n} tareas"><small>${i===0?"hoy":dt.toLocaleDateString("es-ES",{weekday:"short"}).replace(".","")}</small><b>${dt.getDate()}</b><i>${n?"<em></em>".repeat(Math.min(n,3)):""}</i></button>`}
+  return h+`</div>`;
+}
+function longDate(d){const s=new Date(d+"T12:00:00").toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});return s[0].toUpperCase()+s.slice(1)}
+function viewDay(d){
+  const nd=niceDate(d);
+  let h=`<header class="top"><div><button class="back" data-act="selday" data-d="${today()}">${I.back}Hoy</button><h1>${esc(d===addDays(today(),1)?"Mañana":longDate(d).split(",")[0])}</h1></div><button class="chipbtn" data-act="settings" aria-label="Más: rutinas, cambios y ajustes">${I.more} Más</button></header>`;
+  h+=dayStrip();
+  if(d!==addDays(today(),1))h+=`<p class="hint" style="margin-top:10px">${esc(longDate(d))}</p>`;
+  const list=dayTasks(d), pend=list.filter(k=>!k.done).sort((a,b)=>(b.important-a.important)||(a.time||"99").localeCompare(b.time||"99")||a.order-b.order), dn=list.filter(k=>k.done);
+  o_hideDate=true;
+  h+=pend.length?`<ul class="list" style="margin-top:12px">${pend.map(k=>taskRow(k)).join("")}</ul>`:`<div class="empty" style="margin-top:12px"><h3>Día libre</h3><p>Nada apuntado para ${esc(nd.toLowerCase())}.</p></div>`;
+  h+=`<p style="text-align:center"><button class="link" data-act="addday" data-d="${d}">+ Añadir para ${esc(nd.toLowerCase())}</button></p>`;
+  if(dn.length)h+=`<details class="donebox"><summary>Hecho: ${dn.length}</summary><ul class="list">${dn.map(k=>taskRow(k)).join("")}</ul></details>`;
+  o_hideDate=false;
+  return h;
+}
+let monthBase=null;
+function openMonth(){
+  const t=today();if(!monthBase)monthBase=t.slice(0,7);
+  const [y,m]=monthBase.split("-").map(Number);const first=new Date(y,m-1,1),days=new Date(y,m,0).getDate();
+  const lead=(first.getDay()+6)%7;
+  let cells=["L","M","X","J","V","S","D"].map(w=>`<span class="wd">${w}</span>`).join("");
+  for(let i=0;i<lead;i++)cells+="<span></span>";
+  for(let dd=1;dd<=days;dd++){const d=`${y}-${pad(m)}-${pad(dd)}`,n=dayTasks(d).filter(k=>!k.done).length;
+    cells+=`<button data-act="mday" data-d="${d}" ${d<t?"disabled":""} class="${d===t?"today":""}" aria-label="${dd}, ${n} tareas">${dd}<i class="${n?"":"no"}"></i></button>`}
+  let title=first.toLocaleDateString("es-ES",{month:"long",year:"numeric"});title=title[0].toUpperCase()+title.slice(1);
+  sheet(`<div class="mhead"><button class="iconbtn" data-act="mprev" aria-label="Mes anterior" ${monthBase<=t.slice(0,7)?"disabled":""}>${I.back}</button><h3>${esc(title)}</h3><button class="iconbtn" data-act="mnext" aria-label="Mes siguiente" style="transform:scaleX(-1)">${I.back}</button></div>
+  <div class="month">${cells}</div><p class="hint" style="margin:0;text-align:center">Los puntos son días con tareas.</p>`);
+}
+
 /* Hoy */
 function viewToday(){
+  if(selDay&&selDay!==today())return viewDay(selDay);
   let h=header("Hoy");
+  h+=dayStrip();
   h+=exBanner();
   const imp=importants(), rest=todays().filter(k=>!k.important);
   h+=`<div class="label">Lo importante</div>`;
@@ -580,6 +637,7 @@ function viewRout(){
 function render(){
   renderTabs();
   const v=$("#view");
+  setTimeout(()=>{const sel=document.querySelector('.dayb[aria-pressed="true"]');if(sel&&selDay)sel.scrollIntoView({inline:"center",block:"nearest"})},0);
   v.innerHTML=tab==="today"?viewToday():tab==="inbox"?viewInbox():tab==="rout"?viewRout():tab==="proj"?viewProj():tab==="chg"?viewChg():viewNow();
 }
 
@@ -597,8 +655,9 @@ function closeSheet(){const d=$("#scrim");if(d){if(capWhen==="claude"){capWhen=n
 
 /* Captura */
 let capWhen=null,capIdea=false,capArea=null;
-function openCapture(idea){
-  capWhen=null;capIdea=!!idea;capArea=null;
+let capDateFixed=null;
+function openCapture(idea,fixedDate){
+  capWhen=fixedDate?"date":null;capDateFixed=fixedDate||null;capIdea=!!idea;capArea=null;
   const hasMic=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
   const d=sheet(`<h3>¿Qué tienes en la cabeza?</h3>
    <div class="cap ${capIdea?"idea":""}"><textarea id="capt" placeholder="${capIdea?"Ej: para Habi Scan, un reel enseñando el antes y después":"Ej: llamar al gestor mañana a las 10"}" aria-label="Escribe lo que quieras apuntar" enterkeyhint="done"></textarea>
@@ -616,7 +675,7 @@ function updParsed(){
   if(capWhen==="claude"){const a=$("#claudego"),ta=$("#capt");if(a&&ta)a.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));return}
   if(capWhen==="dump"||capWhen==="chg")return;
   const ta=$("#capt");if(!ta)return;
-  const p=parse(ta.value);
+  const p=parse(ta.value);if(capDateFixed&&capWhen==="date"){p.date=capDateFixed;p.when=niceDate(capDateFixed)}
   if(!ta.value.trim()){$("#capchips").innerHTML="";return}
   if(capIdea){
     const a=capArea!==null?capArea:p.area;
@@ -638,17 +697,17 @@ function updParsed(){
 function capSave(){
   const ta=$("#capt");if(!ta)return;
   const text=ta.value.trim();if(!text){ta.focus();return}
-  const p=parse(text);
+  const p=parse(text);if(capDateFixed&&capWhen==="date"){p.date=capDateFixed;p.when=niceDate(capDateFixed)}
   let w=capWhen||(p.date?(p.date===today()?"today":"date"):"inbox");
   const k={id:uid(),text,step:"",mins:0,energy:"",status:"inbox",date:"",time:"",important:false,area:p.area,done:false,doneAt:0,order:Date.now(),created:Date.now()};
   if(capIdea){k.review=true;k.area=capArea!==null?capArea:p.area;S.tasks.push(k);save();closeSheet();
     toast("Idea guardada"+(k.area?" en "+k.area:"")+" para revisar en casa",()=>{S.tasks=S.tasks.filter(x=>x.id!==k.id);save();render()});return}
   if(w==="today"){k.status="today";k.date=today();k.time=p.date===today()?p.time:"";}
   else if(w==="tomorrow"){k.status="later";k.date=addDays(today(),1);k.time=p.time;}
-  else if(w==="date"){k.status="later";k.date=p.date;k.time=p.time;}
+  else if(w==="date"){k.date=p.date;k.status=p.date<=today()?"today":"later";if(k.date<today())k.date=today();k.time=p.time;}
   else if(w==="someday"){k.status="someday";}
   S.tasks.push(k);save();
-  ta.value="";capWhen=null;updParsed();ta.focus();
+  ta.value="";capWhen=capDateFixed?"date":null;updParsed();ta.focus();
   toast(k.status==="inbox"?"Apuntado en la bandeja":k.status==="someday"?"Guardado para algún día":"Apuntado para "+niceDate(k.date).toLowerCase()+(k.time?" a las "+k.time:""),()=>{S.tasks=S.tasks.filter(x=>x.id!==k.id);save();render()});
   renderTabs();
 }
@@ -1002,7 +1061,7 @@ document.addEventListener("click",e=>{
       S.areas[S.areas.indexOf(old)]=nw;S.tasks.forEach(k=>{if(k.area===old)k.area=nw});if(S.kw[old]){S.kw[nw]=S.kw[old];delete S.kw[old]}openProj=nw;save();closeSheet();break}
     case"pkw":S.kw[b.dataset.a]=($("#pkw").value||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);save();toast("Palabras guardadas");break;
     case"pdel":if(b.dataset.sure){const a=b.dataset.a;S.areas=S.areas.filter(x=>x!==a);S.tasks.forEach(k=>{if(k.area===a)k.area=""});openProj=null;save();closeSheet()}else{b.dataset.sure="1";b.textContent="Toca otra vez para borrar"}break;
-    case"tab":if(capWhen==="chg")capWhen=null;openProj=b.dataset.tab==="proj"&&tab==="proj"?null:openProj;tab=b.dataset.tab;try{sessionStorage.setItem("ritmo.tab",tab)}catch(e){};closePlay();render();scrollTo(0,0);break;
+    case"tab":if(capWhen==="chg")capWhen=null;if(b.dataset.tab==="today")selDay=null;openProj=b.dataset.tab==="proj"&&tab==="proj"?null:openProj;tab=b.dataset.tab;try{sessionStorage.setItem("ritmo.tab",tab)}catch(e){};closePlay();render();scrollTo(0,0);break;
     case"capture":openCapture();break;
     case"idea":openCapture(true);break;
     case"caparea":{const p=parse($("#capt").value);const cur=capArea!==null?capArea:p.area;capArea=cur===b.dataset.a?"":b.dataset.a;updParsed();break}
@@ -1014,6 +1073,11 @@ document.addEventListener("click",e=>{
     case"mic":mic();break;
     case"close":closeSheet();break;
     case"settings":openSettings();break;
+    case"selday":selDay=b.dataset.d===today()?null:b.dataset.d;tab="today";render();scrollTo(0,0);break;
+    case"month":monthBase=null;openMonth();break;
+    case"mprev":case"mnext":{const [y,m]=monthBase.split("-").map(Number);const dt=new Date(y,m-1+(act==="mnext"?1:-1),1);monthBase=`${dt.getFullYear()}-${pad(dt.getMonth()+1)}`;openMonth();break}
+    case"mday":selDay=b.dataset.d===today()?null:b.dataset.d;closeSheet();scrollTo(0,0);break;
+    case"addday":openCapture(false,b.dataset.d);break;
     case"claude":openClaude(id);break;
     case"claudego":{const ta=$("#capt");if(!ta||!ta.value.trim()){e.preventDefault();toast("Primero di o escribe qué quieres");ta&&ta.focus();break}if(rec){try{rec.stop()}catch(x){}}b.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));setTimeout(closeSheet,400);break}
     case"claudecopy":{const ta=$("#capt");const txt=claudePrompt(ta?ta.value:"");try{navigator.clipboard.writeText(txt).then(()=>toast("Copiado. Pégalo en Claude."),()=>toast("No he podido copiar"))}catch(x){toast("No he podido copiar")}break}
