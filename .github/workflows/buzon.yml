@@ -1,0 +1,33 @@
+name: buzon
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+  issues: write
+jobs:
+  activar:
+    if: startsWith(github.event.issue.title, 'Buzón de Ritmo') && github.event.issue.user.login == 'Habiscan'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Guardar la clave pública
+        run: |
+          node -e 'require("fs").writeFileSync("/tmp/issue.json", process.env.ISSUE)'
+          node buzon/activar.mjs /tmp/issue.json
+        env:
+          ISSUE: ${{ toJSON(github.event.issue) }}
+      - name: Subir
+        run: |
+          git config user.name "ritmo-buzon"
+          git config user.email "actions@users.noreply.github.com"
+          git add buzon/clave.json
+          git commit -m "Buzón activado" || exit 0
+          git push
+      - name: Cerrar el issue
+        run: gh issue close ${{ github.event.issue.number }} -c "Buzón activado. Ya puedes volver a Ritmo." -R ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -889,7 +889,7 @@ function openSettings(){
   const pend=(S.changes||[]).filter(c=>!c.sent).length;
   sheet(`<h3>Más</h3>
   <button class="rowlink" data-act="claude">Pedir algo a Claude <small>por voz</small></button>
-  <button class="rowlink" data-act="imp">Pegar tareas de Claude <small>lo que te ha dado en el bloque RITMO</small></button>
+  <button class="rowlink" data-act="box">Tareas de Claude <small>${S.box&&S.box.ok?"traer ahora":"conectar una vez"}</small></button>
   <button class="rowlink" data-act="gotab" data-tab="rout">Rutinas <small>mañana, cierre y noche</small></button>
   <button class="rowlink" data-act="gotab" data-tab="chg">Cambios en la app <small>${pend?pend+" sin mandar":"pide mejoras a Claude"}</small></button>
   ${np==="default"?'<button class="rowlink" data-act="perm">Activar avisos <small>para que te avise fuera de la app</small></button>':""}
@@ -1084,6 +1084,10 @@ document.addEventListener("click",e=>{
     case"claude":openClaude(id);break;
     case"claudego":{const ta=$("#capt");if(!ta||!ta.value.trim()){e.preventDefault();toast("Primero di o escribe qué quieres");ta&&ta.focus();break}if(rec){try{rec.stop()}catch(x){}}b.href="https://claude.ai/new?q="+encodeURIComponent(claudePrompt(ta.value));S.claudeAt=Date.now();save();setTimeout(()=>{closeSheet();render()},400);break}
     case"imp":openImport("");break;
+    case"box":openBox();break;
+    case"boxlink":{if(!S.box||!S.box.priv){e.preventDefault();break}S.box.asked=Date.now();save();setTimeout(()=>{closeSheet();boxWait()},600);break}
+    case"boxnow":closeSheet();boxCheck(true);break;
+    case"boxpaste":closeSheet();openImport("");break;
     case"imppaste":{const ta=$("#impt");if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(x=>{if(ta){ta.value=x;updImport()}}).catch(()=>{toast("Mantén pulsado el cuadro y elige Pegar");ta&&ta.focus()})}else{toast("Mantén pulsado el cuadro y elige Pegar");ta&&ta.focus()}break}
     case"impgo":{const it=parseImport(($("#impt")||{}).value||"");if(!it.length){toast("No veo tareas ahí");break}const t=today();it.forEach((f,i)=>{let dd=f.date,st="inbox";if(dd){if(dd<t)dd=t;st=dd===t?"today":"later"}S.tasks.push({id:uid(),text:f.text,step:"",mins:0,energy:"",status:st,date:dd,time:f.time,important:false,area:f.area,done:false,doneAt:0,order:Date.now()+i,created:Date.now(),fromClaude:true})});S.claudeAt=0;save();closeSheet();render();toast(it.length===1?"1 tarea añadida":it.length+" tareas añadidas");break}
     case"claudecopy":{const ta=$("#capt");const txt=claudePrompt(ta?ta.value:"");try{navigator.clipboard.writeText(txt).then(()=>toast("Copiado. Pégalo en Claude."),()=>toast("No he podido copiar"))}catch(x){toast("No he podido copiar")}break}
@@ -1189,7 +1193,7 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target.id==="newproj"){const b=document.querySelector('[data-act="padd"]');b&&b.click()}
   if(e.key==="Enter"&&e.target.id==="newarea"){const b=document.querySelector('[data-act="aadd"]');b&&b.click()}
 });
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){rollover();if(!$("#scrim")&&!$("#focus"))render();checkReminders()}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){boxCheck(false);rollover();if(!$("#scrim")&&!$("#focus"))render();checkReminders()}});
 
 /* Mantener pulsado Apuntar: abre directamente el micro */
 (function(){const f=$("#fab");let t=null,long=false;
@@ -1278,8 +1282,63 @@ function checkLinkImport(){
   if(!m)return;try{history.replaceState(null,"",location.pathname)}catch(e){}openImport(m[1]);
 }
 window.addEventListener("hashchange",checkLinkImport);
+/* Buzón cifrado: Claude deja tareas en buzon/entrada.json del repo (público), cifradas con la clave pública
+   de este móvil. La clave privada nunca sale del móvil. Ver buzon/LEEME.md en el repo. */
+const BOX_API="https://api.github.com/repos/Habiscan/ritmo/contents/buzon/";
+const b64=u=>{let s="";const a=new Uint8Array(u);for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s)};
+const unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+let boxBusy=false,boxLast=0;
+async function boxFetch(name){const r=await fetch(BOX_API+name+"?t="+Date.now(),{headers:{Accept:"application/vnd.github.raw+json"},cache:"no-store"});if(r.status===404)return null;if(!r.ok)throw new Error("http "+r.status);return r.json()}
+async function boxMakeKey(){
+  const kp=await crypto.subtle.generateKey({name:"RSA-OAEP",modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:"SHA-256"},true,["encrypt","decrypt"]);
+  const spki=b64(await crypto.subtle.exportKey("spki",kp.publicKey)),priv=await crypto.subtle.exportKey("jwk",kp.privateKey);
+  const id=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",unb64(spki)))).slice(0,4).map(x=>x.toString(16).padStart(2,"0")).join("");
+  S.box={id,spki,priv,ok:false,seen:{}};save();return S.box;
+}
+function boxIssueUrl(){const b=S.box;const body=`Clave pública del buzón de Ritmo. Se puede publicar: la privada se queda en el móvil.\n\nid: ${b.id}\n\n\`\`\`\n${b.spki}\n\`\`\``;
+  return "https://github.com/Habiscan/ritmo/issues/new?labels=buzon&title="+encodeURIComponent("Buzón de Ritmo "+b.id)+"&body="+encodeURIComponent(body)}
+async function openBox(){
+  if(S.box&&S.box.ok){sheet(`<h3>Tareas de Claude</h3>
+  <p class="hint" style="margin:-6px 0 0">Pídele a Claude en el proyecto «añade a Ritmo …». Las tareas llegan solas al abrir la app.</p>
+  <button class="btn primary" data-act="boxnow">Traer ahora</button>
+  <button class="link" data-act="boxpaste">Pegar un bloque RITMO</button>`);return}
+  if(!(window.crypto&&crypto.subtle)){openImport("");return}
+  if(!S.box||!S.box.priv){try{await boxMakeKey()}catch(e){openImport("");return}}
+  if(S.box.asked&&Date.now()-S.box.asked<864e5){sheet(`<h3>Conectar con Claude</h3>
+  <p class="hint" style="margin:-6px 0 0">Ya está pedido. En cuanto se active, las tareas llegarán solas.</p>
+  <button class="btn primary" data-act="boxnow">Comprobar ahora</button>
+  <a class="link" data-act="boxlink" href="${esc(boxIssueUrl())}" target="_blank" rel="noopener">Volver a abrir GitHub</a>`);return}
+  sheet(`<h3>Conectar con Claude</h3>
+  <p class="hint" style="margin:-6px 0 0">Se hace una sola vez. Se abre GitHub con todo escrito: solo pulsa <b>Submit new issue</b> y vuelve aquí.</p>
+  <a class="btn primary" data-act="boxlink" href="${esc(boxIssueUrl())}" target="_blank" rel="noopener" style="text-decoration:none">Conectar</a>
+  <p class="hint">Solo este móvil puede leer las tareas: van cifradas.</p>`);
+}
+function boxWait(){toast("Cuando Claude lo active, las tareas llegarán solas");let n=0;const t=setInterval(async()=>{n++;await boxCheck(false);if((S.box&&S.box.ok)||n>40)clearInterval(t)},30000)}
+async function boxCheck(manual){
+  if(boxBusy||!S.box||!S.box.priv||!(window.crypto&&crypto.subtle))return;
+  if(!manual&&Date.now()-boxLast<60000)return;boxBusy=true;boxLast=Date.now();let n=0;
+  try{
+    if(!S.box.ok){const k=await boxFetch("clave.json");if(k&&k.id===S.box.id){S.box.ok=true;save();toast("Conectado con Claude")}else{if(manual)toast("Claude aún no ha activado el buzón");return}}
+    const f=await boxFetch("entrada.json");const items=(f&&f.items)||[];if(!S.box.seen)S.box.seen={};
+    const key=await crypto.subtle.importKey("jwk",S.box.priv,{name:"RSA-OAEP",hash:"SHA-256"},false,["decrypt"]);
+    for(const it of items){if(!it||!it.id||S.box.seen[it.id])continue;S.box.seen[it.id]=Date.now();
+      if(it.para&&it.para!==S.box.id)continue;
+      try{const b=unb64(it.c),raw=await crypto.subtle.decrypt({name:"RSA-OAEP"},key,b.slice(0,256));
+        const ak=await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["decrypt"]);
+        const j=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:b.slice(256,268)},ak,b.slice(268))));
+        n+=boxAdd(Array.isArray(j)?j:(j.tareas||[]),it.id)}catch(e){}}
+    const cut=Date.now()-90*864e5;Object.keys(S.box.seen).forEach(k=>{if(S.box.seen[k]<cut)delete S.box.seen[k]});save();
+    if(n){if(!$("#scrim")&&!$("#focus"))render();toast(n===1?"1 tarea nueva de Claude":`${n} tareas nuevas de Claude`)}else if(manual)toast("No hay nada nuevo");
+  }catch(e){if(manual)toast("Sin conexión con el buzón")}finally{boxBusy=false}
+}
+function boxAdd(list,src){const t=today();let n=0;
+  list.slice(0,50).forEach((f,i)=>{const text=String((f&&f.text)||"").trim().slice(0,200);if(!text)return;
+    let dd=okDate(f.date)||(f.date?impDate(String(f.date)):""),st="inbox";if(dd){if(dd<t)dd=t;st=dd===t?"today":"later"}
+    const area=S.areas.find(z=>normA(z)===normA(f.area))||"";
+    S.tasks.push({id:uid(),text,step:String(f.step||"").slice(0,200),mins:+f.mins||0,energy:["baja","media","alta"].includes(f.energy)?f.energy:"",status:st,date:dd,time:okTime(f.time),important:!!f.important&&(st!=="today"||importants().length<3),area,done:false,doneAt:0,order:Date.now()+i,created:Date.now(),fromClaude:src});n++});
+  return n}
 /* ---------- arranque ---------- */
-load();render();feedStart();setTimeout(checkLinkImport,50);
+load();render();feedStart();setTimeout(checkLinkImport,50);setTimeout(()=>boxCheck(false),800);setInterval(()=>{if(!document.hidden)boxCheck(false)},5*60000);
 if(S.timer&&byId(S.timer.id)&&!S.timer.ended){focusId=S.timer.id;drawFocus()}
 setInterval(()=>{tickFocus();tickRoutine()},1000);
 setInterval(checkReminders,15000);setTimeout(checkReminders,1500);
